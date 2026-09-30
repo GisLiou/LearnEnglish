@@ -217,6 +217,10 @@ img { display: block; max-width: 100%; }
 /* ---------- 自選課程 ---------- */
 .map-note { color: var(--muted); font-size: 16.5px; margin: 0 4px 14px; }
 .units { display: grid; gap: 10px; }
+.month { margin: 14px 4px 2px; }
+.month:first-child { margin-top: 0; }
+.month b { display: block; font-size: 20px; font-weight: 900; color: var(--blue); }
+.month small { color: var(--muted); font-size: 15px; }
 .unit { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 14px 16px; box-shadow: 0 3px 0 var(--line); transition: transform .08s, box-shadow .08s, border-color .15s; scroll-margin: 90px; }
 .unit:hover { border-color: var(--blue); }
 .unit:active { transform: translateY(3px); box-shadow: none; }

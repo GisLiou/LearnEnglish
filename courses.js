@@ -1,4 +1,4 @@
-/* 簡單學英文 · 30 單元課程內容
+/* 簡單學英文 · 60 單元課程內容（1–30 基礎、31–60 進階）
    每單元：一段情境對話（A = 浣浣，B = 情境角色），8 個重點單字都會出現在對話裡。
    words: [英文, 中文, 圖示]；lines: [說話者, 英文, 中文] */
 window.COURSE = [
@@ -120,5 +120,126 @@ window.COURSE = [
 
   { id: 30, topic: 'travel', title: '緊急狀況', en: 'Emergencies', scene: '🚨', place: '街上遇到警察', npc: { name: '警察', face: '👮' },
     words: [['police', '警察', '👮'], ['stolen', '被偷的', '🦹'], ['phone', '手機', '📱'], ['lost', '弄丟了', '❓'], ['wallet', '錢包', '👛'], ['ambulance', '救護車', '🚑'], ['emergency', '緊急情況', '🚨'], ['passport', '護照', '🛂']],
-    lines: [['A', 'Help! Please call the police!', '救命！請打電話叫警察！'], ['B', 'I am a police officer. What happened?', '我是警察。發生什麼事？'], ['A', 'My phone was stolen!', '我的手機被偷了！'], ['A', 'I lost my wallet too.', '我的錢包也弄丟了。'], ['B', 'Are you hurt? Do you need an ambulance?', '你受傷了嗎？需要救護車嗎？'], ['A', 'No. But this is an emergency!', '沒有。但這是緊急情況！'], ['B', 'Do you have your passport?', '你的護照在身上嗎？'], ['A', 'Yes, it is in my bag.', '在，在我的包包裡。']] }
+    lines: [['A', 'Help! Please call the police!', '救命！請打電話叫警察！'], ['B', 'I am a police officer. What happened?', '我是警察。發生什麼事？'], ['A', 'My phone was stolen!', '我的手機被偷了！'], ['A', 'I lost my wallet too.', '我的錢包也弄丟了。'], ['B', 'Are you hurt? Do you need an ambulance?', '你受傷了嗎？需要救護車嗎？'], ['A', 'No. But this is an emergency!', '沒有。但這是緊急情況！'], ['B', 'Do you have your passport?', '你的護照在身上嗎？'], ['A', 'Yes, it is in my bag.', '在，在我的包包裡。']] },
+
+  /* ===== 第二個月：31–60 單元（句子稍長一點，更多生活與旅遊情境） ===== */
+  { id: 31, topic: 'daily', title: '逛超市', en: 'At the Supermarket', scene: '🛒', place: '超市', npc: { name: '店員', face: '🧑‍💼' },
+    words: [['where is', '在哪裡', '❓'], ['fruit', '水果', '🍇'], ['vegetables', '蔬菜', '🥦'], ['fresh', '新鮮的', '🌿'], ['meat', '肉', '🥩'], ['eggs', '雞蛋', '🥚'], ['bottle', '瓶子；一瓶', '🍾'], ['cart', '推車', '🛒']],
+    lines: [['A', 'Excuse me, where is the fruit?', '不好意思，水果在哪裡？'], ['B', 'The fruit is next to the vegetables.', '水果在蔬菜旁邊。'], ['A', 'Are these apples fresh?', '這些蘋果新鮮嗎？'], ['B', 'Yes, they came in this morning.', '新鮮，今天早上才進貨的。'], ['A', 'Where is the meat?', '肉在哪裡？'], ['B', 'It is at the back, near the eggs.', '在後面，雞蛋的旁邊。'], ['A', 'I need a bottle of milk too.', '我還需要一瓶牛奶。'], ['B', 'Here. Do you need a cart?', '在這裡。你需要推車嗎？'], ['A', 'Yes, please. Thank you!', '要，麻煩你。謝謝！']] },
+
+  { id: 32, topic: 'daily', title: '在家做菜', en: 'Cooking at Home', scene: '🍳', place: '朋友家的廚房', npc: { name: '朋友 Amy', face: '👩' },
+    words: [['kitchen', '廚房', '🍳'], ['cut', '切', '🔪'], ['onion', '洋蔥', '🧅'], ['pot', '鍋子', '🍲'], ['oil', '油', '🫒'], ['salt', '鹽', '🧂'], ['taste', '嚐；嚐味道', '👅'], ['ready', '準備好的', '✅']],
+    lines: [['B', 'Welcome to my kitchen!', '歡迎來到我的廚房！'], ['A', 'What are we cooking today?', '我們今天要煮什麼？'], ['B', 'Tomato soup. Can you cut the onion?', '番茄湯。你可以切洋蔥嗎？'], ['A', 'Sure. Is the pot hot now?', '沒問題。鍋子現在熱了嗎？'], ['B', 'Yes. Put in a little oil first.', '熱了。先放一點油。'], ['A', 'How much salt do we need?', '我們需要多少鹽？'], ['B', 'Just a little. Now taste it.', '一點點就好。現在嚐嚐看。'], ['A', 'Wow, it is good!', '哇，很好喝！'], ['B', 'Great! Dinner is ready.', '太好了！晚餐準備好了。']] },
+
+  { id: 33, topic: 'daily', title: '打電話', en: 'On the Phone', scene: '☎️', place: '打電話給朋友', npc: { name: 'Tom 的媽媽', face: '👵' },
+    words: [['at home', '在家', '🏠'], ['hold on', '請稍等', '⏳'], ['out', '外出；不在', '🚶'], ['right now', '現在；此刻', '⚡'], ['message', '留言；訊息', '💬'], ['call back', '回電', '🔁'], ['soon', '很快；不久', '⏩'], ['phone number', '電話號碼', '☎️']],
+    lines: [['A', 'Hello, is Tom at home?', '喂，請問 Tom 在家嗎？'], ['B', 'Hold on, please.', '請稍等。'], ['B', 'Sorry, he is out right now.', '抱歉，他現在出去了。'], ['A', 'Can I leave a message?', '我可以留言嗎？'], ['B', 'Of course.', '當然可以。'], ['A', 'Please ask him to call back soon.', '請他盡快回電。'], ['B', 'Does he have your phone number?', '他有你的電話號碼嗎？'], ['A', 'Yes, he does. Thank you!', '有的。謝謝您！']] },
+
+  { id: 34, topic: 'daily', title: '看牙醫', en: 'At the Dentist', scene: '🦷', place: '牙醫診所', npc: { name: '牙醫', face: '🧑‍⚕️' },
+    words: [['dentist', '牙醫', '🧑‍⚕️'], ['tooth', '牙齒', '🦷'], ['hurts', '會痛', '🤕'], ['mouth', '嘴巴', '👄'], ['bad', '嚴重的；糟的', '👎'], ['candy', '糖果', '🍬'], ['brush', '刷', '🪥'], ['twice', '兩次', '✌️']],
+    lines: [['B', 'Hi, I am your dentist today.', '你好，我是你今天的牙醫。'], ['A', 'Hello. This tooth hurts.', '你好。這顆牙齒會痛。'], ['B', 'Please open your mouth.', '請張開嘴巴。'], ['B', 'Well, it is not too bad.', '嗯，不算太嚴重。'], ['A', 'I eat a lot of candy.', '我吃很多糖果。'], ['B', 'Please eat less candy.', '請少吃糖果。'], ['B', 'And brush your teeth twice a day.', '還有，一天刷兩次牙。'], ['A', 'OK. Thank you!', '好的。謝謝你！']] },
+
+  { id: 35, topic: 'travel', title: '換錢', en: 'Exchanging Money', scene: '💱', place: '機場換匯櫃檯', npc: { name: '櫃檯人員', face: '👩‍💼' },
+    words: [['exchange', '兌換', '💱'], ['money', '錢', '💰'], ['dollars', '美元', '💵'], ['rate', '匯率', '📈'], ['fee', '手續費', '💲'], ['sign', '簽名', '✍️'], ['count', '數一數', '🔢'], ['coins', '硬幣', '🪙']],
+    lines: [['A', 'Hello. I want to exchange some money.', '你好。我想換一些錢。'], ['B', 'Sure. How much do you want to exchange?', '好的。你想換多少？'], ['A', 'Two hundred dollars, please.', '請幫我換兩百美元。'], ['A', 'What is the rate today?', '今天的匯率是多少？'], ['B', 'It is on the screen.', '在螢幕上。'], ['A', 'Is there a fee?', '要手續費嗎？'], ['B', 'Yes, three dollars. Please sign here.', '要，三美元。請在這裡簽名。'], ['B', 'Please count your money.', '請數一數你的錢。'], ['A', 'Can I have some coins too?', '也可以給我一些硬幣嗎？']] },
+
+  { id: 36, topic: 'travel', title: '租腳踏車', en: 'Renting a Bike', scene: '🚲', place: '腳踏車出租店', npc: { name: '店員', face: '🧑‍🔧' },
+    words: [['rent', '租', '🔑'], ['bike', '腳踏車', '🚲'], ['hour', '小時', '⏳'], ['helmet', '安全帽', '⛑️'], ['lock', '鎖', '🔒'], ['river', '河', '🏞️'], ['return', '歸還', '↩️'], ['careful', '小心的', '⚠️']],
+    lines: [['A', 'Hi, can I rent a bike?', '嗨，我可以租一台腳踏車嗎？'], ['B', 'Sure. It is five dollars an hour.', '可以。一小時五美元。'], ['A', 'Two hours, please.', '兩個小時，麻煩你。'], ['B', 'Here is your helmet and a lock.', '這是你的安全帽和鎖。'], ['A', 'Where can I ride?', '我可以騎去哪裡？'], ['B', 'There is a nice path by the river.', '河邊有一條很棒的路。'], ['B', 'Please return it by five.', '請在五點前歸還。'], ['B', 'And be careful on the road.', '還有，路上要小心。'], ['A', 'OK, I will. Thanks!', '好，我會的。謝謝！']] },
+
+  { id: 37, topic: 'daily', title: '在公園', en: 'In the Park', scene: '🌳', place: '早上的公園', npc: { name: '鄰居 Amy', face: '👩' },
+    words: [['park', '公園', '🌳'], ['walk', '散步', '🚶'], ['tree', '樹', '🌲'], ['flower', '花', '🌸'], ['beautiful', '美麗的', '🌺'], ['bird', '鳥', '🐦'], ['bench', '長椅', '🪑'], ['dog', '狗', '🐕']],
+    lines: [['B', 'Good morning! Do you come to the park often?', '早安！你常來公園嗎？'], ['A', 'Yes. I take a walk every morning.', '對。我每天早上都會散步。'], ['B', 'Look at that big tree!', '你看那棵大樹！'], ['A', 'That flower is so beautiful.', '那朵花好漂亮。'], ['B', 'Listen! A bird is singing.', '你聽！有一隻鳥在唱歌。'], ['A', "Let's sit on the bench.", '我們坐在長椅上吧。'], ['B', 'Oh, here comes my dog!', '喔，我的狗來了！'], ['A', 'He is so cute!', '牠好可愛！']] },
+
+  { id: 38, topic: 'daily', title: '生日派對', en: 'Birthday Party', scene: '🎂', place: '朋友家', npc: { name: '朋友 Tom', face: '🧑' },
+    words: [['birthday', '生日', '🎂'], ['party', '派對', '🎉'], ['surprise', '驚喜', '🎁'], ['cake', '蛋糕', '🍰'], ['years old', '歲', '🔢'], ['sing', '唱歌', '🎤'], ['wish', '願望；許願', '🌠'], ['candles', '蠟燭', '🕯️']],
+    lines: [['A', 'Happy birthday, Tom!', '生日快樂，Tom！'], ['B', 'Thank you for coming to my party!', '謝謝你來參加我的派對！'], ['A', 'Surprise! This is for you.', '驚喜！這是給你的。'], ['B', 'Wow, a cake! Thank you!', '哇，一個蛋糕！謝謝你！'], ['A', 'How old are you now?', '你現在幾歲了？'], ['B', 'I am thirty years old today.', '我今天滿三十歲。'], ['A', 'We will sing for you. Make a wish!', '我們為你唱歌。許個願吧！'], ['B', 'OK. Now I will blow out the candles.', '好。現在我要吹蠟燭了。']] },
+
+  { id: 39, topic: 'travel', title: '轉機', en: 'Connecting Flights', scene: '🔁', place: '轉機櫃檯', npc: { name: '地勤人員', face: '👩‍✈️' },
+    words: [['transfer', '轉機', '🔁'], ['terminal', '航廈', '🏢'], ['delayed', '延誤的', '⏰'], ['miss', '錯過', '😰'], ['on time', '準時', '⌛'], ['hurry', '趕快', '🏃'], ['screen', '螢幕', '🖥️'], ['announcement', '廣播', '📢']],
+    lines: [['A', 'Excuse me, where do I transfer to Paris?', '不好意思，我要在哪裡轉機去巴黎？'], ['B', 'Go to Terminal Two.', '請到第二航廈。'], ['A', 'My first flight was delayed.', '我的第一班飛機延誤了。'], ['A', 'Will I miss my next flight?', '我會錯過下一班飛機嗎？'], ['B', 'Your next flight is on time.', '你的下一班飛機準時起飛。'], ['B', 'You have time, but please hurry.', '你還有時間，但請快一點。'], ['B', 'Check the screen for your gate.', '看螢幕確認你的登機門。'], ['A', 'Thank you! I will listen for the announcement.', '謝謝！我會注意聽廣播。']] },
+
+  { id: 40, topic: 'travel', title: '行李不見了', en: 'Lost Luggage', scene: '🧳', place: '行李提領處', npc: { name: '行李服務人員', face: '👨‍💼' },
+    words: [['suitcase', '行李箱', '🧳'], ['missing', '不見的', '❓'], ['baggage claim', '行李提領處', '🛄'], ['color', '顏色', '🎨'], ['name tag', '名牌', '🏷️'], ['fill out', '填寫', '✏️'], ['form', '表格', '📝'], ['deliver', '送到', '🚚']],
+    lines: [['A', 'Excuse me, my suitcase is missing.', '不好意思，我的行李箱不見了。'], ['B', 'I am sorry. Did you check the baggage claim?', '很抱歉。你看過行李提領處了嗎？'], ['A', 'Yes, I waited for an hour.', '看過了，我等了一個小時。'], ['B', 'What color is it?', '它是什麼顏色？'], ['A', 'It is black, with a red name tag.', '黑色的，上面有紅色名牌。'], ['B', 'Please fill out this form.', '請填寫這張表格。'], ['B', 'We will deliver it to your hotel.', '我們會把它送到你的飯店。'], ['A', 'Thank you so much.', '非常謝謝你。']] },
+
+  { id: 41, topic: 'daily', title: '在郵局', en: 'At the Post Office', scene: '📮', place: '郵局', npc: { name: '郵局人員', face: '👩‍💼' },
+    words: [['post office', '郵局', '🏤'], ['send', '寄', '📤'], ['package', '包裹', '📦'], ['weigh', '秤重', '⚖️'], ['by air', '空運', '✈️'], ['arrive', '到達', '📬'], ['letter', '信', '✉️'], ['stamps', '郵票', '📮']],
+    lines: [['B', 'Welcome to the post office. Can I help you?', '歡迎來到郵局。需要幫忙嗎？'], ['A', 'I want to send this package to Japan.', '我想把這個包裹寄到日本。'], ['B', 'Sure. Let me weigh it.', '好的。我秤一下。'], ['B', 'It is two kilos.', '兩公斤。'], ['A', 'How long will it take by air?', '空運要多久？'], ['B', 'It will arrive in five days.', '五天後會到。'], ['A', 'I also want to send this letter.', '我還想寄這封信。'], ['B', 'OK. You need two stamps.', '好的。你需要兩張郵票。']] },
+
+  { id: 42, topic: 'daily', title: '剪頭髮', en: 'At the Hair Salon', scene: '💇', place: '美髮店', npc: { name: '設計師', face: '💇' },
+    words: [['haircut', '剪頭髮', '💇'], ['hair', '頭髮', '💈'], ['wash', '洗', '🧴'], ['style', '髮型；樣式', '✨'], ['short', '短的', '📏'], ['a little', '一點點', '🤏'], ['mirror', '鏡子', '🪞'], ['look', '看；看起來', '👀']],
+    lines: [['A', 'Hi, I would like a haircut.', '嗨，我想剪頭髮。'], ['B', 'Sure. Let me wash your hair first.', '好的。我先幫你洗頭。'], ['B', 'Do you like this style?', '你喜歡這個髮型嗎？'], ['A', 'Yes, but not too short, please.', '喜歡，但請不要剪太短。'], ['B', 'OK. I will cut just a little.', '好的。我只剪一點點。'], ['B', 'All done. Look in the mirror.', '剪好了。看一下鏡子。'], ['A', 'I look great! Thank you!', '我看起來很棒！謝謝！']] },
+
+  { id: 43, topic: 'daily', title: '運動健身', en: 'Exercise', scene: '🏃', place: '運動中心', npc: { name: '朋友 Ben', face: '👨' },
+    words: [['exercise', '運動；健身', '🤸'], ['gym', '健身房', '🏋️'], ['run', '跑步', '🏃'], ['stretch', '伸展', '🧘'], ['legs', '腿', '🦵'], ['slow down', '放慢', '🐢'], ['minutes', '分鐘', '⏱️'], ['healthy', '健康的', '💪']],
+    lines: [['B', 'Do you exercise every day?', '你每天運動嗎？'], ['A', 'Not every day. I go to the gym twice a week.', '沒有每天。我一週去兩次健身房。'], ['B', "Let's run together!", '我們一起跑步吧！'], ['A', "OK, but let's stretch first.", '好，但我們先伸展。'], ['B', 'Good idea. Stretch your legs.', '好主意。伸展一下你的腿。'], ['A', 'Please slow down! I am tired.', '請慢一點！我累了。'], ['B', 'OK. Just five more minutes.', '好。再五分鐘就好。'], ['A', 'Exercise keeps me healthy.', '運動讓我保持健康。']] },
+
+  { id: 44, topic: 'daily', title: '四季', en: 'Seasons', scene: '🍂', place: '喝茶聊天', npc: { name: '朋友 Amy', face: '👩' },
+    words: [['favorite', '最喜歡的', '❤️'], ['season', '季節', '🗓️'], ['spring', '春天', '🌸'], ['summer', '夏天', '☀️'], ['fall', '秋天', '🍂'], ['leaves', '葉子', '🍁'], ['snow', '雪；下雪', '☃️'], ['winter', '冬天', '❄️']],
+    lines: [['B', 'What is your favorite season?', '你最喜歡哪個季節？'], ['A', 'I like spring. It is warm.', '我喜歡春天。很暖和。'], ['B', 'I like summer. I can swim every day.', '我喜歡夏天。我每天都可以游泳。'], ['A', 'Fall is nice too.', '秋天也很好。'], ['B', 'Yes, the leaves turn red and yellow.', '對，葉子會變成紅色和黃色。'], ['A', 'Does it snow in winter here?', '這裡冬天會下雪嗎？'], ['B', 'No, but it is very cold.', '不會，但是很冷。']] },
+
+  { id: 45, topic: 'travel', title: '在海邊', en: 'At the Beach', scene: '🏖️', place: '海灘', npc: { name: '朋友 Tom', face: '🧑' },
+    words: [['beach', '海灘', '🏖️'], ['sunscreen', '防曬乳', '🧴'], ['sunglasses', '太陽眼鏡', '🕶️'], ['sand', '沙子', '⏳'], ['sea', '海', '🌊'], ['waves', '海浪', '🏄'], ['shell', '貝殼', '🐚'], ['ice cream', '冰淇淋', '🍦']],
+    lines: [['B', 'What a nice day for the beach!', '今天好適合去海灘！'], ['A', 'Yes! Did you bring sunscreen?', '對啊！你有帶防曬乳嗎？'], ['B', 'Yes, and my sunglasses too.', '有，還有我的太陽眼鏡。'], ['A', 'The sand is so hot!', '沙子好燙！'], ['B', "Let's go into the sea.", '我們下海吧。'], ['A', 'Be careful. The waves are big today.', '小心。今天浪很大。'], ['B', 'Look, I found a shell!', '你看，我撿到一個貝殼！'], ['A', "Nice! Let's get some ice cream.", '真好！我們去買冰淇淋吧。']] },
+
+  { id: 46, topic: 'travel', title: '露營', en: 'Camping', scene: '🏕️', place: '山上的營地', npc: { name: '營地管理員', face: '🧑‍🌾' },
+    words: [['tent', '帳篷', '⛺'], ['fire', '火', '🔥'], ['bugs', '蟲', '🐛'], ['dark', '暗的；天黑的', '🌑'], ['flashlight', '手電筒', '🔦'], ['camp', '露營', '🏕️'], ['mountains', '山；山區', '⛰️'], ['stars', '星星', '⭐']],
+    lines: [['B', 'Welcome! You can put your tent here.', '歡迎！你可以把帳篷搭在這裡。'], ['A', 'Great! Can we make a fire?', '太好了！我們可以生火嗎？'], ['B', 'Yes, but only in this area.', '可以，但只能在這一區。'], ['A', 'Are there bugs at night?', '晚上有蟲嗎？'], ['B', 'Some. It gets dark at seven.', '有一些。七點天就黑了。'], ['B', 'Do you have a flashlight?', '你有手電筒嗎？'], ['A', 'Yes. I love to camp in the mountains.', '有。我很喜歡在山裡露營。'], ['B', 'Look up tonight. You can see many stars.', '今晚抬頭看看。你可以看到很多星星。']] },
+
+  { id: 47, topic: 'travel', title: '買網路卡', en: 'Getting a SIM Card', scene: '📶', place: '電信門市', npc: { name: '店員', face: '🧑‍💼' },
+    words: [['SIM card', 'SIM 卡（手機網路卡）', '📱'], ['week', '一週', '📆'], ['unlimited', '無限的；吃到飽的', '♾️'], ['data', '網路流量', '📊'], ['internet', '網路', '🌐'], ['signal', '訊號', '📶'], ['battery', '電池', '🔋'], ['charger', '充電器', '🔌']],
+    lines: [['A', 'Hi, I need a SIM card.', '嗨，我需要一張 SIM 卡。'], ['B', 'How long will you stay?', '你會待多久？'], ['A', 'One week.', '一個星期。'], ['B', 'This one has unlimited data.', '這張的網路流量吃到飽。'], ['A', 'Great. Is the internet fast?', '太好了。網路快嗎？'], ['B', 'Yes, and the signal is good everywhere.', '很快，而且到處訊號都很好。'], ['A', 'Also, my battery is low.', '還有，我的電池快沒電了。'], ['A', 'Can I buy a charger here?', '我可以在這裡買充電器嗎？'], ['B', 'Sure. It is right here.', '當然。就在這裡。']] },
+
+  { id: 48, topic: 'travel', title: '市場買水果', en: 'At the Market', scene: '🥭', place: '當地傳統市場', npc: { name: '水果攤老闆', face: '👨‍🦳' },
+    words: [['market', '市場', '🍉'], ['mango', '芒果', '🥭'], ['sweet', '甜的', '🍯'], ['kilo', '公斤', '⚖️'], ['cheaper', '更便宜的', '⬇️'], ['strawberries', '草莓', '🍓'], ['basket', '籃子；一籃', '🧺'], ['deal', '成交', '🤝']],
+    lines: [['A', 'This market is so busy!', '這個市場好熱鬧！'], ['B', 'Try a mango. It is very sweet.', '試吃一顆芒果。很甜喔。'], ['A', 'Wow, it is sweet! How much for a kilo?', '哇，真的很甜！一公斤多少錢？'], ['B', 'Eight dollars a kilo.', '一公斤八美元。'], ['A', 'Can you make it cheaper?', '可以算便宜一點嗎？'], ['B', 'OK, seven dollars. And the strawberries?', '好吧，七美元。那草莓呢？'], ['A', 'One basket of strawberries, please.', '請給我一籃草莓。'], ['B', 'Deal! Here you go.', '成交！給你。']] },
+
+  { id: 49, topic: 'daily', title: '我的家', en: 'My Home', scene: '🏠', place: '參觀新家', npc: { name: '朋友 Amy', face: '👩' },
+    words: [['house', '房子', '🏠'], ['living room', '客廳', '📺'], ['sofa', '沙發', '🛋️'], ['window', '窗戶', '🪟'], ['bedroom', '臥室', '🛏️'], ['stairs', '樓梯', '🪜'], ['garden', '花園', '🌷'], ['quiet', '安靜的', '🤫']],
+    lines: [['A', 'Welcome to my new house!', '歡迎來到我的新家！'], ['B', 'Wow, the living room is so big.', '哇，客廳好大。'], ['A', 'Sit on the sofa. It is soft.', '坐沙發吧。很軟喔。'], ['B', 'I love this big window.', '我很喜歡這扇大窗戶。'], ['A', 'My bedroom is up the stairs.', '我的臥室在樓上。'], ['B', 'Do you have a garden?', '你有花園嗎？'], ['A', 'Yes, a small one. It is very quiet here.', '有，一個小花園。這裡很安靜。']] },
+
+  { id: 50, topic: 'daily', title: '做家事', en: 'Housework', scene: '🧹', place: '週末在家', npc: { name: '室友 Amy', face: '👩' },
+    words: [['messy', '亂的', '🌀'], ['tidy', '整理', '🧺'], ['do the dishes', '洗碗', '🍽️'], ['vacuum', '吸地', '🧹'], ['take out', '拿出去', '📤'], ['trash', '垃圾', '🗑️'], ['laundry', '要洗的衣服', '👕'], ['fold', '摺', '🧦']],
+    lines: [['B', 'Our room is so messy!', '我們的房間好亂！'], ['A', "Let's tidy it up together.", '我們一起整理吧。'], ['B', 'I will do the dishes.', '我來洗碗。'], ['A', 'OK. I will vacuum the living room.', '好。我來吸客廳的地。'], ['B', 'Can you take out the trash too?', '你也可以把垃圾拿出去嗎？'], ['A', 'Sure. Is the laundry dry?', '沒問題。衣服乾了嗎？'], ['B', "Yes. Let's fold it now.", '乾了。我們現在來摺衣服。'], ['A', 'Great! Now the house is clean.', '太好了！現在家裡乾淨了。']] },
+
+  { id: 51, topic: 'daily', title: '寵物', en: 'Pets', scene: '🐈', place: '鄰居家', npc: { name: '鄰居 Ben', face: '👨' },
+    words: [['pet', '寵物', '🐾'], ['cat', '貓', '🐈'], ['soft', '柔軟的', '🪶'], ['feed', '餵', '🍖'], ['bowl', '碗', '🥣'], ['play', '玩', '🎾'], ['toy', '玩具', '🧸'], ['take care of', '照顧', '🤲']],
+    lines: [['A', 'Do you have a pet?', '你有養寵物嗎？'], ['B', 'Yes, this is my cat, Lucky.', '有，這是我的貓 Lucky。'], ['A', 'She is so soft!', '牠好軟！'], ['B', 'Do you want to feed her?', '你想餵牠嗎？'], ['A', 'Yes! Where is her bowl?', '想！牠的碗在哪裡？'], ['B', 'Here. She also likes to play.', '在這裡。牠也很喜歡玩。'], ['A', 'Can I give her this toy?', '我可以給牠這個玩具嗎？'], ['B', 'Sure. Thank you for helping me take care of her.', '當然。謝謝你幫我照顧牠。']] },
+
+  { id: 52, topic: 'travel', title: '餐廳訂位', en: 'Booking a Table', scene: '📞', place: '打電話到餐廳', npc: { name: '餐廳人員', face: '🤵' },
+    words: [['book', '預訂', '📞'], ['tonight', '今晚', '🌃'], ['people', '人；人數', '👥'], ["o'clock", '點鐘', '🕖'], ['full', '客滿的', '🈵'], ['outside', '外面；戶外', '🌳'], ['last name', '姓氏', '🪪'], ['see you', '到時見', '👋']],
+    lines: [['B', 'Hello, this is Rose Restaurant.', '你好，這裡是玫瑰餐廳。'], ['A', 'Hi. Can I book a table for tonight?', '嗨。我可以訂今晚的位子嗎？'], ['B', 'Sure. How many people?', '好的。請問幾位？'], ['A', "Four people, at seven o'clock.", '四位，七點。'], ['B', "Sorry, seven o'clock is full.", '抱歉，七點已經客滿了。'], ['B', 'We have a table outside at eight.', '我們八點有戶外的位子。'], ['A', 'That is fine. My last name is Lin.', '可以。我姓林。'], ['B', 'Thank you. See you tonight!', '謝謝。今晚見！']] },
+
+  { id: 53, topic: 'travel', title: '逛夜市', en: 'Night Market', scene: '🏮', place: '夜市', npc: { name: '朋友 Tom', face: '🧑' },
+    words: [['night market', '夜市', '🏮'], ['snack', '小吃', '🍢'], ['stinky tofu', '臭豆腐', '🧆'], ['smell', '聞起來', '👃'], ['fried', '炸的', '🍤'], ['bubble tea', '珍珠奶茶', '🧋'], ['line', '隊伍', '🚶'], ['share', '分享', '🤝']],
+    lines: [['A', 'I love the night market!', '我好喜歡夜市！'], ['B', 'Try this snack. It is stinky tofu.', '吃吃看這個小吃。這是臭豆腐。'], ['A', 'It does not smell good!', '聞起來不太香！'], ['B', 'But it tastes great. It is fried.', '但是很好吃。這是炸的。'], ['A', 'Wow, you are right!', '哇，你說得對！'], ['B', "Let's get some bubble tea.", '我們去買珍珠奶茶吧。'], ['A', 'Wow, the line is so long.', '哇，隊伍好長。'], ['B', 'It is popular. We can share one.', '它很受歡迎。我們可以一起喝一杯。']] },
+
+  { id: 54, topic: 'daily', title: '看電影', en: 'At the Cinema', scene: '🎬', place: '電影院', npc: { name: '朋友 Ben', face: '👨' },
+    words: [['starts', '開始', '▶️'], ['popcorn', '爆米花', '🍿'], ['row', '排', '💺'], ['scary', '恐怖的', '👻'], ['funny', '好笑的', '😂'], ['turn off', '關掉', '📴'], ['ending', '結局', '🎞️'], ['cinema', '電影院', '🎬']],
+    lines: [['B', 'The movie starts at eight.', '電影八點開始。'], ['A', "Let's get some popcorn first.", '我們先買爆米花吧。'], ['B', 'Our seats are in row five.', '我們的座位在第五排。'], ['A', 'Is this movie scary?', '這部電影恐怖嗎？'], ['B', 'No, it is funny.', '不會，很好笑。'], ['A', 'Please turn off your phone.', '請把手機關機。'], ['B', 'The ending was so good!', '結局好棒！'], ['A', "Yes! Let's come to this cinema again.", '對！我們下次再來這間電影院吧。']] },
+
+  { id: 55, topic: 'daily', title: '便利商店', en: 'Convenience Store', scene: '🏪', place: '便利商店', npc: { name: '店員', face: '🧑‍💼' },
+    words: [['heat up', '加熱', '♨️'], ['lunch box', '便當', '🍱'], ['chopsticks', '筷子', '🥢'], ['straw', '吸管', '🥤'], ['plastic bag', '塑膠袋', '🛍️'], ['change', '零錢', '🪙'], ['convenience store', '便利商店', '🏪'], ['every day', '每天', '📅']],
+    lines: [['A', 'Can you heat up this lunch box?', '可以幫我加熱這個便當嗎？'], ['B', 'Sure. Do you need chopsticks?', '好的。需要筷子嗎？'], ['A', 'Yes, please. And a straw for my tea.', '要，麻煩你。還要一根吸管給我的茶。'], ['B', 'Do you need a plastic bag?', '需要塑膠袋嗎？'], ['A', 'No, thank you. I have a bag.', '不用，謝謝。我有袋子。'], ['B', 'That is five dollars. Here is your change.', '一共五美元。這是找你的零錢。'], ['A', 'I come to this convenience store every day.', '我每天都來這間便利商店。']] },
+
+  { id: 56, topic: 'travel', title: '搭渡輪', en: 'Taking a Ferry', scene: '⛴️', place: '碼頭', npc: { name: '船公司人員', face: '🧑‍✈️' },
+    words: [['ferry', '渡輪', '⛴️'], ['leave', '出發；離開', '🚢'], ['every', '每', '🔁'], ['island', '島', '🏝️'], ['deck', '甲板', '⚓'], ['life jacket', '救生衣', '🦺'], ['seasick', '暈船的', '🤢'], ['boat', '船', '🚤']],
+    lines: [['A', 'When does the next ferry leave?', '下一班渡輪什麼時候出發？'], ['B', 'Every hour. The next one is at ten.', '每小時一班。下一班是十點。'], ['A', 'How long does it take to the island?', '到島上要多久？'], ['B', 'About forty minutes.', '大約四十分鐘。'], ['A', 'Can I sit on the deck?', '我可以坐在甲板上嗎？'], ['B', 'Yes, but please wear a life jacket.', '可以，但請穿救生衣。'], ['A', 'I get seasick on a boat.', '我坐船會暈船。'], ['B', 'Sit in the middle. It helps.', '坐中間，會比較好。']] },
+
+  { id: 57, topic: 'travel', title: '規劃行程', en: 'Planning a Trip', scene: '🗾', place: '咖啡店討論', npc: { name: '朋友 Amy', face: '👩' },
+    words: [['trip', '旅程', '🧳'], ['Japan', '日本', '🗾'], ['fly', '搭飛機', '🛩️'], ['first', '首先', '1️⃣'], ['city', '城市', '🏙️'], ['then', '然後', '⏭️'], ['temple', '寺廟', '⛩️'], ['budget', '預算', '💳']],
+    lines: [['B', 'Where do you want to go for our trip?', '我們這趟旅行你想去哪裡？'], ['A', "Let's go to Japan!", '我們去日本吧！'], ['B', 'Good idea. We can fly to Tokyo.', '好主意。我們可以搭飛機去東京。'], ['A', 'First, we stay in the city for three days.', '首先，我們在城市裡待三天。'], ['B', 'Then we can take a train to Kyoto.', '然後我們可以搭火車去京都。'], ['A', 'I want to see an old temple.', '我想去看古老的寺廟。'], ['B', 'What is our budget?', '我們的預算是多少？'], ['A', 'About two thousand dollars each.', '每人大約兩千美元。']] },
+
+  { id: 58, topic: 'daily', title: '朋友來作客', en: 'Having Guests', scene: '🚪', place: '家裡', npc: { name: '朋友 Tom', face: '🧑' },
+    words: [['come in', '請進', '🚪'], ['invite', '邀請', '💌'], ['take off', '脫掉', '👟'], ['slippers', '拖鞋', '🩴'], ['cookies', '餅乾', '🍪'], ['bring', '帶來', '🎁'], ['glad', '高興的', '😄'], ['enjoy', '享受；喜歡', '😊']],
+    lines: [['A', 'Hi, Tom! Come in, please.', '嗨，Tom！請進。'], ['B', 'Thanks for the invite!', '謝謝你的邀請！'], ['A', 'Please take off your shoes.', '請把鞋子脫掉。'], ['A', 'Here are some slippers.', '這裡有拖鞋。'], ['B', 'These cookies are for you.', '這些餅乾是給你的。'], ['A', 'Thank you! You did not have to bring anything.', '謝謝！你不用帶東西來的。'], ['A', 'I am so glad you are here.', '你來我好高興。'], ['B', 'Me too. I always enjoy visiting you.', '我也是。我一直都很喜歡來找你。']] },
+
+  { id: 59, topic: 'daily', title: '聊聊旅行', en: 'Talking About a Trip', scene: '📸', place: '旅行回來後', npc: { name: '朋友 Amy', face: '👩' },
+    words: [['back', '回來', '↩️'], ['amazing', '很棒的', '🤩'], ['went', '去了', '✈️'], ['last week', '上週', '📆'], ['saw', '看到了', '🗻'], ['ate', '吃了', '🍣'], ['bought', '買了', '🛍️'], ['great time', '愉快的時光', '🥳']],
+    lines: [['B', 'Welcome back! How was your trip?', '歡迎回來！旅行怎麼樣？'], ['A', 'It was amazing!', '太棒了！'], ['B', 'Where did you go?', '你去了哪裡？'], ['A', 'I went to Japan last week.', '我上週去了日本。'], ['A', 'I saw Mount Fuji. It was beautiful.', '我看到了富士山。好美。'], ['B', 'What did you eat?', '你吃了什麼？'], ['A', 'I ate a lot of sushi.', '我吃了很多壽司。'], ['A', 'And I bought this gift for you.', '還有，我買了這個禮物給你。'], ['B', 'Thank you! You had a great time!', '謝謝！你玩得真開心！']] },
+
+  { id: 60, topic: 'travel', title: '道別與保持聯絡', en: 'Keeping in Touch', scene: '💌', place: '旅程的最後一天', npc: { name: '新朋友 Emma', face: '👩‍🦰' },
+    words: [['keep in touch', '保持聯絡', '📱'], ['email', '電子郵件', '📧'], ['add', '加（好友）', '➕'], ['next year', '明年', '🗓️'], ['remember', '記得', '🧠'], ['hug', '擁抱', '🤗'], ['take care', '保重', '💐'], ['safe trip', '一路平安', '🛫']],
+    lines: [['B', 'Today is your last day here.', '今天是你在這裡的最後一天。'], ['A', 'Yes. I will miss you, Emma.', '對。我會想念你的，Emma。'], ['B', "Let's keep in touch!", '我們保持聯絡吧！'], ['A', 'Sure. Here is my email.', '好啊。這是我的電子郵件。'], ['B', 'I will add you on my phone.', '我會用手機加你好友。'], ['A', 'Come visit me in Taiwan next year!', '明年來台灣找我玩！'], ['B', 'I will! I will always remember this trip.', '我會的！我會一直記得這趟旅行。'], ['A', 'Can I give you a hug?', '我可以抱你一下嗎？'], ['B', 'Of course! Take care and have a safe trip.', '當然！保重，一路平安。']] }
 ];

@@ -31,7 +31,7 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const app = $('#app');
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const name = () => esc(data.nickname || '');
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -377,7 +377,7 @@
   }
 
   // ========== 程度測驗 ==========
-  const CHECKPOINTS = [1, 4, 7, 10, 13, 16, 19, 22, 25, 28];
+  const CHECKPOINTS = [1, 7, 13, 19, 25, 31, 37, 43, 49, 55];
   function screenPlacementIntro(fromSettings = false) {
     talk({ mood: 'nod', buttons: `<button class="btn" id="start">開始測驗（約 10 題）</button>
         <button class="btn ${fromSettings ? 'quit' : 'ghost'}" id="skip">${fromSettings ? '取消，回到設定' : '跳過，從第 1 單元開始'}</button>` });
@@ -451,9 +451,9 @@
       <div class="section-title">選擇學習方式</div>
       <button class="course daily" id="daily"><span class="ico">${ICON.sun}</span>
         <span><h2>每日課程<span class="badge">${finishedAll ? '全部完成' : `第 ${next} 單元`}</span></h2>
-        <p>${finishedAll ? '30 個單元都學完了！從頭再複習一輪吧' : `${esc(nu.title)} · ${TOPIC[nu.topic]} · 約 10 分鐘`}</p></span><span class="go">${ICON.chevron}</span></button>
+        <p>${finishedAll ? `${COURSE.length} 個單元都學完了！從頭再複習一輪吧` : `${esc(nu.title)} · ${TOPIC[nu.topic]} · 約 10 分鐘`}</p></span><span class="go">${ICON.chevron}</span></button>
       <button class="course free" id="free"><span class="ico">${ICON.map}</span>
-        <span><h2>自選課程<span class="badge soft">${doneCount}/${COURSE.length}</span></h2><p>30 個單元，自由複習或跳級</p></span><span class="go">${ICON.chevron}</span></button>
+        <span><h2>自選課程<span class="badge soft">${doneCount}/${COURSE.length}</span></h2><p>${COURSE.length} 個單元，自由複習或跳級</p></span><span class="go">${ICON.chevron}</span></button>
       <div class="foot">第 2 階段預覽版</div>`,
       bottom: '<button class="btn quit" id="leave">離開學習</button>' });
     $('#leave').onclick = () => { sfx.tap(); confirmExit(); };
@@ -463,11 +463,16 @@
   }
 
   // ========== 自選課程（課程地圖） ==========
+  const MONTHS = [
+    { from: 1, title: '第一個月 · 基礎', note: '第 1–30 單元：短句、常用單字' },
+    { from: 31, title: '第二個月 · 進階', note: '第 31–60 單元：句子長一點、更多生活與旅遊情境' }
+  ];
   function screenMap() {
     page({ top: navTop('自選課程'), body: `<p class="map-note">點任何一個單元都可以上。在這裡上課只算複習，不會改變每日課程的進度。</p>
       <div class="units">${COURSE.map(u => {
         const done = !!data.done[u.id], cur = u.id === data.dailyNext;
-        return `<button class="unit ${done ? 'done' : ''} ${cur ? 'cur' : ''}" data-u="${u.id}">
+        const head = MONTHS.find(m => m.from === u.id);
+        return `${head ? `<div class="month"><b>${head.title}</b><small>${head.note}</small></div>` : ''}<button class="unit ${done ? 'done' : ''} ${cur ? 'cur' : ''}" data-u="${u.id}">
           <span class="num">${done ? ICON.check : u.id}</span>
           <span class="meta"><b>${esc(u.title)}</b><small>${esc(u.en)} · ${TOPIC[u.topic]}</small></span>
           ${cur ? '<span class="tag">每日進度</span>' : ''}</button>`;
@@ -500,11 +505,42 @@
     ['多少錢', '價格', '多少個'], ['多久', '幾點'], ['左邊', '左轉'], ['停留', '住', '飯店'],
     ['熱的', '溫暖的；保暖的'], ['冷的', '冰的'], ['休息', '睡覺', '累的'], ['當然', '是的；好'],
     ['來訪；拜訪', '旅行', '假期', '導覽'], ['袋子', '袋子；一件行李', '行李'],
-    ['被偷的', '弄丟了'], ['晚上', '晚一點'], ['有空的', '免費的']
+    ['被偷的', '弄丟了', '不見的'], ['晚上', '晚一點', '今晚'], ['有空的', '免費的'],
+    // 第二個月（31–60）新增的相近詞
+    ['糖', '糖果', '甜的', '甜點', '蛋糕', '冰淇淋'], ['小吃', '餅乾', '爆米花', '甜點'],
+    ['肉', '牛肉', '雞肉', '魚'], ['水果', '蘋果', '芒果', '草莓'], ['蔬菜', '洋蔥'],
+    ['會痛', '頭痛'], ['牙醫', '醫生'], ['刷', '牙刷'], ['錢', '現金', '美元', '硬幣', '零錢'],
+    ['手續費', '小費', '價格'], ['預約', '預訂'], ['小時', '分鐘', '多久'], ['歸還', '回來', '回家'],
+    ['河', '海', '海灘', '海浪', '島'], ['公園', '花園'], ['樹', '花', '葉子', '花園'], ['狗', '貓', '寵物'],
+    ['長椅', '沙發', '座位'], ['美麗的', '可愛的', '很棒的', '很好的'], ['驚喜', '禮物'], ['唱歌', '音樂'],
+    ['轉機', '班機', '搭飛機', '空運'], ['趕快', '很快；不久', '現在；此刻', '晚一點'], ['航廈', '機場', '登機門'],
+    ['袋子', '袋子；一件行李', '行李', '行李箱', '行李提領處', '塑膠袋'], ['名字', '名牌', '姓氏'],
+    ['寄', '送到'], ['秤重', '公斤'], ['剪頭髮', '頭髮', '切', '髮型；樣式'], ['洗', '洗澡', '洗碗', '要洗的衣服'],
+    ['運動', '運動；健身', '健身房', '跑步'], ['放慢', '慢慢地'], ['卡；信用卡', 'SIM 卡（手機網路卡）'],
+    ['網路流量', '網路', '無線網路', '訊號'], ['一週', '週末', '上週'], ['充電器', '電池'],
+    ['市場', '夜市', '便利商店'], ['便宜的', '更便宜的', '折扣'], ['籃子；一籃', '推車'],
+    ['房子', '房間', '臥室', '客廳'], ['樓梯', '電梯', '樓層'], ['打掃', '整理', '吸地', '亂的'],
+    ['玩', '玩具'], ['照顧', '幫忙', '保重', '小心的'], ['幾點', '點鐘'], ['外出；不在', '外面；戶外'],
+    ['再見', '到時見'], ['茶', '牛奶', '珍珠奶茶'], ['電影', '電影院'], ['開始', '開門'], ['關掉', '關門'],
+    ['餐點', '午餐', '便當'], ['熱的', '加熱'], ['渡輪', '船', '甲板'], ['每', '每一個', '每天'],
+    ['不舒服的；生病的', '暈船的'], ['外套', '救生衣'], ['旅行', '旅程', '一路平安'], ['第一次', '首先'],
+    ['入口', '請進'], ['鞋子', '拖鞋'], ['開心的', '高興的', '很好的；高興的', '愉快的時光', '享受；喜歡'],
+    ['看', '看；看起來', '看到了'], ['留言；訊息', '電子郵件'], ['明天', '明年'], ['在家', '回家'],
+    ['寄', '送到', '到達'], ['一起', '分享'], ['暗的；天黑的', '黑色'], ['冰淇淋', '冰的'], ['會痛', '不舒服的；生病的'],
+    ['嚴重的；糟的', '壞掉的'],
+    // 聽起來或拼起來很像的字，聽力題不要放在一起
+    ['手續費', '免費的', '有空的'], ['唱歌', '簽名'], ['散步', '上班；工作'], ['錯過', '不見的'], ['看；看起來', '鎖'],
+    ['貓', '切', '推車'], ['沙子', '寄'], ['鍋子', '寵物'], ['帳篷', '十', '然後'], ['秋天', '客滿的'], ['願望；許願', '洗'],
+    ['加（好友）', '吃了'], ['肉', '認識；見面'], ['星星', '開始'], ['旅程', '小費']
   ];
   const zhParts = z => z.split('；').map(x => x.replace(/的$/, ''));
+  // 英文太像也算：單複數（ticket / tickets）、其中一個包含另一個（jacket / life jacket）
+  const enLike = (x, y) => {
+    const a = x.toLowerCase().replace(/s$/, ''), b = y.toLowerCase().replace(/s$/, '');
+    return a === b || ` ${x.toLowerCase()} `.includes(` ${y.toLowerCase()} `) || ` ${y.toLowerCase()} `.includes(` ${x.toLowerCase()} `);
+  };
   function confusing(a, b) {
-    if (a.en.toLowerCase() === b.en.toLowerCase() || a.zh === b.zh) return true;
+    if (enLike(a.en, b.en) || a.zh === b.zh) return true;
     const pa = zhParts(a.zh), pb = zhParts(b.zh);
     if (pa.some(x => pb.includes(x))) return true;
     return SIMILAR.some(g => g.includes(a.zh) && g.includes(b.zh));
