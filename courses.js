@@ -15,7 +15,7 @@ window.COURSE = [
     lines: [['B', 'Hello! How many apples?', '哈囉！要幾顆蘋果？'], ['A', 'Three apples, please.', '三顆蘋果，麻煩你。'], ['B', 'OK. One, two, three.', '好的。一、二、三。'], ['A', 'And four bananas.', '還有四根香蕉。'], ['B', 'Anything else?', '還要別的嗎？'], ['A', 'Five eggs and six lemons.', '五顆蛋和六顆檸檬。'], ['B', 'That is ten dollars.', '這樣是十元。']] },
 
   { id: 4, topic: 'daily', title: '家人', en: 'Family', scene: '📷', place: '一起看相簿', npc: { name: '朋友 Amy', face: '👩' },
-    words: [['photo', '照片', '📷'], ['family', '家人', '👨‍👩‍👧'], ['mother', '媽媽', '👩'], ['father', '爸爸', '👨'], ['sister', '姊妹', '👧'], ['brother', '兄弟', '👦'], ['baby', '寶寶', '👶'], ['cute', '可愛的', '🥰']],
+    words: [['photo', '照片', '📷'], ['family', '家人', '👨‍👩‍👧'], ['mother', '媽媽', '👩'], ['father', '爸爸', '👨'], ['sister', '姊妹；姊姊或妹妹', '👧'], ['brother', '兄弟；哥哥或弟弟', '👦'], ['baby', '寶寶', '👶'], ['cute', '可愛的', '🥰']],
     lines: [['A', 'Look at this photo. This is my family.', '你看這張照片。這是我的家人。'], ['B', 'Is this your mother?', '這是你的媽媽嗎？'], ['A', 'Yes, and this is my father.', '對，這是我的爸爸。'], ['B', 'Who is this girl?', '這個女孩是誰？'], ['A', 'She is my sister.', '她是我的姊妹。'], ['B', 'Do you have a brother?', '你有兄弟嗎？'], ['A', 'Yes. He has a baby.', '有。他有一個寶寶。'], ['B', 'The baby is so cute!', '寶寶好可愛！']] },
 
   { id: 5, topic: 'daily', title: '顏色與衣服', en: 'Colors & Clothes', scene: '🛍️', place: '服飾店', npc: { name: '店員', face: '👩‍💼' },
@@ -24,11 +24,11 @@ window.COURSE = [
 
   { id: 6, topic: 'daily', title: '時間與星期', en: 'Time & Days', scene: '📅', place: '辦公室', npc: { name: '同事 Ben', face: '👨‍💼' },
     words: [['what time', '幾點', '⏰'], ['morning', '早上', '🌄'], ['today', '今天', '📅'], ['Monday', '星期一', '🗓️'], ['Friday', '星期五', '🎉'], ['weekend', '週末', '🏖️'], ['tomorrow', '明天', '➡️'], ['night', '晚上', '🌙']],
-    lines: [['A', 'What time is it?', '現在幾點？'], ['B', 'It is nine in the morning.', '現在是早上九點。'], ['A', 'Is today Monday?', '今天是星期一嗎？'], ['B', 'No, today is Friday!', '不是，今天是星期五！'], ['A', 'Great! The weekend is tomorrow.', '太好了！明天就是週末。'], ['B', 'Let\'s watch a movie at night.', '我們晚上去看電影吧。']] },
+    lines: [['A', 'What time is it?', '現在幾點？'], ['B', 'It is nine in the morning.', '現在是早上九點。'], ['A', 'Is today Monday?', '今天是星期一嗎？'], ['B', 'No, today is Friday!', '不是，今天是星期五！'], ['A', 'Great! The weekend is tomorrow.', '太好了！明天就是週末。'], ['B', 'Let\'s see a movie on Saturday night.', '我們星期六晚上去看電影吧。']] },
 
   { id: 7, topic: 'daily', title: '食物與飲料', en: 'Food & Drinks', scene: '🍽️', place: '中午吃飯', npc: { name: '朋友 Amy', face: '👩' },
     words: [['hungry', '餓的', '😋'], ['rice', '飯', '🍚'], ['noodles', '麵', '🍜'], ['chicken', '雞肉', '🍗'], ['tea', '茶', '🍵'], ['water', '水', '💧'], ['bread', '麵包', '🍞'], ['apple', '蘋果', '🍎']],
-    lines: [['A', 'I am hungry.', '我肚子餓了。'], ['B', 'Do you want rice or noodles?', '你想吃飯還是麵？'], ['A', 'Noodles with chicken, please.', '請給我雞肉麵。'], ['B', 'Do you want some tea?', '你要喝點茶嗎？'], ['A', 'Just water, thank you.', '開水就好，謝謝。'], ['B', 'Here is some bread and an apple.', '這裡有一些麵包和一顆蘋果。']] },
+    lines: [['A', 'I am hungry.', '我肚子餓了。'], ['B', 'Do you want rice or noodles?', '你想吃飯還是麵？'], ['A', 'Noodles with chicken, please.', '請給我雞肉麵。'], ['B', 'Do you want some tea?', '你要喝點茶嗎？'], ['A', 'Just water, thank you.', '開水就好，謝謝。'], ['B', 'Have some bread and an apple.', '吃點麵包和一顆蘋果吧。']] },
 
   { id: 8, topic: 'daily', title: '在咖啡店', en: 'At the Café', scene: '☕', place: '咖啡店', npc: { name: '店員', face: '🧑‍🍳' },
     words: [['menu', '菜單', '📋'], ['coffee', '咖啡', '☕'], ['hot', '熱的', '🔥'], ['iced', '冰的', '🧊'], ['milk', '牛奶', '🥛'], ['sugar', '糖', '🍬'], ['large', '大的', '🥤'], ['to go', '外帶', '🛍️']],
@@ -44,7 +44,7 @@ window.COURSE = [
 
   { id: 11, topic: 'daily', title: '購物', en: 'Shopping', scene: '🏬', place: '百貨公司', npc: { name: '店員', face: '👩‍💼' },
     words: [['how much', '多少錢', '💰'], ['price', '價格', '🏷️'], ['expensive', '貴的', '💸'], ['cheap', '便宜的', '🪙'], ['try', '試；試穿', '👗'], ['size', '尺寸', '📏'], ['card', '卡；信用卡', '💳'], ['cash', '現金', '💵']],
-    lines: [['A', 'How much is this dress?', '這件洋裝多少錢？'], ['B', 'The price is ninety dollars.', '價格是九十元。'], ['A', 'That is expensive.', '那有點貴。'], ['B', 'This one is cheap. Only thirty.', '這件很便宜。只要三十。'], ['A', 'Can I try it on?', '我可以試穿嗎？'], ['B', 'Sure. What size do you need?', '當然。你需要什麼尺寸？'], ['A', 'Medium. Can I pay by card?', '中號。我可以刷卡嗎？'], ['B', 'Sorry, cash only.', '抱歉，只收現金。']] },
+    lines: [['A', 'How much is this dress?', '這件洋裝多少錢？'], ['B', 'The price is ninety dollars.', '價格是九十元。'], ['A', 'That is expensive.', '那很貴。'], ['B', 'This one is cheap. Only thirty.', '這件很便宜。只要三十。'], ['A', 'Can I try it on?', '我可以試穿嗎？'], ['B', 'Sure. What size do you need?', '當然。你需要什麼尺寸？'], ['A', 'Medium. Can I pay by card?', '中號。我可以刷卡嗎？'], ['B', 'Sorry, cash only.', '抱歉，只收現金。']] },
 
   { id: 12, topic: 'travel', title: '入境與海關', en: 'Immigration', scene: '🛂', place: '入境櫃檯', npc: { name: '海關人員', face: '👮' },
     words: [['visit', '來訪；拜訪', '🗺️'], ['holiday', '假期', '🏖️'], ['business', '商務', '💼'], ['first time', '第一次', '🥇'], ['stay', '停留', '🛎️'], ['days', '天', '📆'], ['hotel', '飯店', '🏨'], ['declare', '申報', '📝']],
@@ -56,7 +56,7 @@ window.COURSE = [
 
   { id: 14, topic: 'travel', title: '搭計程車', en: 'Taking a Taxi', scene: '🚕', place: '計程車上', npc: { name: '司機', face: '🧔' },
     words: [['taxi', '計程車', '🚕'], ['airport', '機場', '🛫'], ['address', '地址', '📮'], ['how long', '多久', '⏱️'], ['stop', '停下', '🛑'], ['station', '車站', '🚉'], ['left', '左邊', '⬅️'], ['right', '右邊', '➡️']],
-    lines: [['A', 'Taxi!', '計程車！'], ['B', 'Hello. Where to?', '你好。要去哪裡？'], ['A', 'The airport, please. Here is the address.', '請到機場。這是地址。'], ['A', 'How long will it take?', '要多久時間？'], ['B', 'About thirty minutes.', '大約三十分鐘。'], ['A', 'Wait, please stop at the station first.', '等等，請先在車站停一下。'], ['B', 'Sure. The station is on the left.', '好的。車站在左邊。'], ['A', 'Oh, it is on the right!', '喔，它在右邊！']] },
+    lines: [['A', 'Taxi!', '計程車！'], ['B', 'Hello. Where to?', '你好。要去哪裡？'], ['A', 'Please take me to this address.', '請載我到這個地址。'], ['B', 'OK. It is near the airport.', '好的。這在機場附近。'], ['A', 'How long will it take?', '要多久時間？'], ['B', 'About thirty minutes.', '大約三十分鐘。'], ['A', 'Please stop at the station first.', '請先在車站停一下。'], ['B', 'Sure. Is it on the left or right?', '好的。在左邊還是右邊？'], ['A', 'It is on the right.', '在右邊。']] },
 
   { id: 15, topic: 'travel', title: '搭大眾運輸', en: 'Public Transport', scene: '🚆', place: '火車站售票口', npc: { name: '站務員', face: '👷' },
     words: [['ticket', '票；車票', '🎫'], ['one-way', '單程的', '➡️'], ['round trip', '來回', '🔁'], ['next', '下一個', '⏭️'], ['train', '火車', '🚆'], ['platform', '月台', '🛤️'], ['bus', '公車', '🚌'], ['subway', '地鐵', '🚇']],
@@ -64,7 +64,7 @@ window.COURSE = [
 
   { id: 16, topic: 'travel', title: '問路', en: 'Asking for Directions', scene: '🗺️', place: '街上', npc: { name: '路人', face: '👵' },
     words: [['excuse me', '不好意思', '🙋'], ['lost', '迷路的', '😵'], ['how do I get to', '怎麼去', '🧭'], ['go straight', '直走', '⬆️'], ['turn left', '左轉', '↩️'], ['corner', '轉角', '📐'], ['far', '遠的', '🚶'], ['map', '地圖', '🗺️']],
-    lines: [['A', 'Excuse me. I am lost.', '不好意思。我迷路了。'], ['B', 'Can I help you?', '需要幫忙嗎？'], ['A', 'How do I get to the museum?', '請問博物館怎麼去？'], ['B', 'Go straight and turn left.', '直走然後左轉。'], ['B', 'It is on the corner.', '它在轉角。'], ['A', 'Is it far?', '很遠嗎？'], ['B', 'No. Look at this map.', '不遠。你看這張地圖。']] },
+    lines: [['A', 'Excuse me. I am lost.', '不好意思。我迷路了。'], ['B', 'Can I help you?', '需要幫忙嗎？'], ['A', 'How do I get to the museum?', '請問博物館怎麼去？'], ['B', 'Go straight and turn left.', '直走然後左轉。'], ['B', 'It is on the corner.', '它在轉角。'], ['A', 'Is it far?', '很遠嗎？'], ['B', 'No, it is not far. Look at this map.', '不遠。你看這張地圖。']] },
 
   { id: 17, topic: 'daily', title: '興趣', en: 'Hobbies', scene: '🎨', place: '喝茶聊天', npc: { name: '朋友 Tom', face: '🧑' },
     words: [['hobby', '興趣', '🎯'], ['music', '音樂', '🎵'], ['movies', '電影', '🎬'], ['books', '書', '📚'], ['sports', '運動', '⚽'], ['swim', '游泳', '🏊'], ['cook', '做菜', '🍳'], ['travel', '旅行', '🌏']],
@@ -92,7 +92,7 @@ window.COURSE = [
 
   { id: 23, topic: 'daily', title: '感覺與身體', en: 'Feelings & Health', scene: '🤒', place: '關心朋友', npc: { name: '朋友 Amy', face: '👩' },
     words: [['tired', '累的', '😴'], ['sick', '不舒服的；生病的', '🤒'], ['headache', '頭痛', '🤕'], ['fever', '發燒', '🌡️'], ['sad', '難過的', '😢'], ['rest', '休息', '🛌'], ['better', '好一點的', '🙂'], ['happy', '開心的', '😄']],
-    lines: [['A', 'You look tired. Are you OK?', '你看起來很累。你還好嗎？'], ['B', 'I feel sick. I have a headache.', '我不舒服。我頭痛。'], ['A', 'Oh no! Do you have a fever?', '喔不！你有發燒嗎？'], ['B', 'No. I am just a little sad today.', '沒有。我今天只是有點難過。'], ['A', 'Get some rest.', '好好休息。'], ['A', 'I hope you feel better.', '希望你好一點。'], ['B', 'Thank you. I am happy you are here.', '謝謝你。有你在我很開心。']] },
+    lines: [['A', 'You look tired. Are you OK?', '你看起來很累。你還好嗎？'], ['B', 'I feel sick. I have a headache.', '我不舒服。我頭痛。'], ['A', 'Oh no! Do you have a fever?', '喔不！你有發燒嗎？'], ['B', 'No. And I am a little sad today.', '沒有。而且我今天有點難過。'], ['A', 'Get some rest.', '好好休息。'], ['A', 'I hope you feel better.', '希望你好一點。'], ['B', 'Thank you. I am happy you are here.', '謝謝你。有你在我很開心。']] },
 
   { id: 24, topic: 'travel', title: '參觀博物館', en: 'Sightseeing', scene: '🏛️', place: '博物館售票口', npc: { name: '售票員', face: '👩‍💼' },
     words: [['museum', '博物館', '🏛️'], ['open', '開門', '🔓'], ['close', '關門', '🔒'], ['tickets', '票', '🎟️'], ['free', '免費的', '🆓'], ['tour', '導覽', '🎧'], ['entrance', '入口', '🚪'], ['photos', '照片', '📸']],
@@ -100,7 +100,7 @@ window.COURSE = [
 
   { id: 25, topic: 'travel', title: '請人幫忙', en: 'Asking for Help', scene: '🙋', place: '觀光景點', npc: { name: '路人', face: '🧑' },
     words: [['help', '幫忙', '🆘'], ['sure', '當然', '👌'], ['photo', '照片', '📷'], ['English', '英文', '🔤'], ['speak', '說', '🗣️'], ['slowly', '慢慢地', '🐢'], ['understand', '懂；理解', '💡'], ['again', '再一次', '🔁']],
-    lines: [['A', 'Excuse me. Could you help me?', '不好意思。你可以幫我嗎？'], ['B', 'Sure! What is it?', '當然！什麼事？'], ['A', 'Could you take a photo of us?', '你可以幫我們拍張照嗎？'], ['A', 'Sorry, my English is not good.', '抱歉，我的英文不太好。'], ['A', 'Could you speak slowly?', '你可以說慢一點嗎？'], ['B', 'Sure. Where do I press?', '沒問題。要按哪裡？'], ['A', 'I understand now. Press here.', '我懂了。按這裡。'], ['A', 'Could you take one again?', '你可以再拍一張嗎？']] },
+    lines: [['A', 'Excuse me. Could you help me?', '不好意思。你可以幫我嗎？'], ['B', 'Sure! What is it?', '當然！什麼事？'], ['A', 'Could you take a photo of us?', '你可以幫我們拍張照嗎？'], ['B', 'No problem. Do you want the tower in the photo?', '沒問題。要把塔也拍進照片裡嗎？'], ['A', 'Sorry, my English is not good.', '抱歉，我的英文不太好。'], ['A', 'Could you speak slowly?', '你可以說慢一點嗎？'], ['B', 'Sure. Do you want the tower too?', '當然。塔也要拍進去嗎？'], ['A', 'Yes! I understand now. Thank you.', '要！我懂了。謝謝你。'], ['A', 'Could you take one again?', '你可以再拍一張嗎？']] },
 
   { id: 26, topic: 'daily', title: '約時間', en: 'Making Plans', scene: '📱', place: '講電話', npc: { name: '朋友 Tom', face: '🧑' },
     words: [['free', '有空的', '🙆'], ['Saturday', '星期六', '🗓️'], ['maybe', '也許', '🤔'], ['plan', '計畫', '🗒️'], ['dinner', '晚餐', '🍽️'], ['together', '一起', '🤝'], ['sounds good', '聽起來不錯', '👍'], ['call', '打電話', '📞']],
@@ -108,11 +108,11 @@ window.COURSE = [
 
   { id: 27, topic: 'travel', title: '買紀念品', en: 'Buying Souvenirs', scene: '🎁', place: '紀念品店', npc: { name: '老闆', face: '👨‍💼' },
     words: [['gift', '禮物', '🎁'], ['popular', '受歡迎的', '⭐'], ['local', '當地的', '📍'], ['souvenir', '紀念品', '🗿'], ['each', '每一個', '☝️'], ['discount', '折扣', '🏷️'], ['wrap', '包裝', '🎀'], ['bag', '袋子', '🛍️']],
-    lines: [['A', 'I am looking for a gift.', '我在找一份禮物。'], ['B', 'This tea is very popular.', '這款茶很受歡迎。'], ['A', 'Is it a local souvenir?', '這是當地的紀念品嗎？'], ['B', 'Yes. It is ten dollars each.', '是的。每個十元。'], ['A', 'Is there a discount for three?', '買三個有折扣嗎？'], ['B', 'OK, twenty-five dollars for three.', '好，三個二十五元。'], ['A', 'Great! Can you wrap it, please?', '太好了！可以幫我包裝嗎？'], ['B', 'Sure. Do you need a bag?', '當然。你需要袋子嗎？']] },
+    lines: [['A', 'I am looking for a gift.', '我在找一份禮物。'], ['B', 'This tea is very popular.', '這款茶很受歡迎。'], ['A', 'Is it a local souvenir?', '這是當地的紀念品嗎？'], ['B', 'Yes. It is ten dollars each.', '是的。每個十元。'], ['A', 'Is there a discount for three?', '買三個有折扣嗎？'], ['B', 'OK, twenty-five dollars for three.', '好，三個二十五元。'], ['A', 'Great! Can you wrap them, please?', '太好了！可以幫我包裝嗎？'], ['B', 'Sure. Do you need a bag?', '當然。你需要袋子嗎？']] },
 
   { id: 28, topic: 'daily', title: '日常作息', en: 'Daily Routine', scene: '⏰', place: '聊生活', npc: { name: '朋友 Amy', face: '👩' },
     words: [['wake up', '起床', '⏰'], ['usually', '通常', '🔄'], ['shower', '洗澡', '🚿'], ['breakfast', '早餐', '🍳'], ['go to work', '去上班', '🚶'], ['lunch', '午餐', '🥪'], ['go home', '回家', '🏠'], ['sleep', '睡覺', '😴']],
-    lines: [['B', 'What time do you wake up?', '你幾點起床？'], ['A', 'I usually wake up at six.', '我通常六點起床。'], ['A', 'I take a shower and eat breakfast.', '我洗澡然後吃早餐。'], ['B', 'When do you go to work?', '你什麼時候去上班？'], ['A', 'At eight. I eat lunch at noon.', '八點。我中午吃午餐。'], ['B', 'When do you go home?', '你什麼時候回家？'], ['A', 'At six. I sleep at ten.', '六點。我十點睡覺。']] },
+    lines: [['B', 'What time do you wake up?', '你幾點起床？'], ['A', 'I usually wake up at six.', '我通常六點起床。'], ['A', 'I take a shower and eat breakfast.', '我洗澡然後吃早餐。'], ['B', 'When do you go to work?', '你什麼時候去上班？'], ['A', 'At eight. I eat lunch at noon.', '八點。我中午吃午餐。'], ['B', 'When do you go home?', '你什麼時候回家？'], ['A', 'At six. I go to sleep at ten.', '六點。我十點睡覺。']] },
 
   { id: 29, topic: 'travel', title: '藥局與看病', en: 'At the Pharmacy', scene: '💊', place: '藥局', npc: { name: '藥師', face: '🧑‍⚕️' },
     words: [['medicine', '藥', '💊'], ['pharmacy', '藥局', '🏪'], ['cold', '感冒', '🤧'], ['cough', '咳嗽', '😷'], ['fever', '發燒', '🌡️'], ['allergic', '過敏的', '🥜'], ['doctor', '醫生', '👨‍⚕️'], ['hospital', '醫院', '🏥']],
@@ -120,5 +120,5 @@ window.COURSE = [
 
   { id: 30, topic: 'travel', title: '緊急狀況', en: 'Emergencies', scene: '🚨', place: '街上遇到警察', npc: { name: '警察', face: '👮' },
     words: [['police', '警察', '👮'], ['stolen', '被偷的', '🦹'], ['phone', '手機', '📱'], ['lost', '弄丟了', '❓'], ['wallet', '錢包', '👛'], ['ambulance', '救護車', '🚑'], ['emergency', '緊急情況', '🚨'], ['passport', '護照', '🛂']],
-    lines: [['A', 'Help! Please call the police!', '救命！請打電話叫警察！'], ['B', 'I am a police officer. What happened?', '我是警察。發生什麼事？'], ['A', 'My phone was stolen!', '我的手機被偷了！'], ['A', 'I lost my wallet too.', '我的錢包也弄丟了。'], ['B', 'Are you hurt? Do you need an ambulance?', '你受傷了嗎？需要救護車嗎？'], ['A', 'No. But this is an emergency!', '沒有。但這是緊急情況！'], ['B', 'Do you have your passport?', '你的護照還在嗎？'], ['A', 'Yes, it is in my bag.', '在，在我的包包裡。']] }
+    lines: [['A', 'Help! Please call the police!', '救命！請打電話叫警察！'], ['B', 'I am a police officer. What happened?', '我是警察。發生什麼事？'], ['A', 'My phone was stolen!', '我的手機被偷了！'], ['A', 'I lost my wallet too.', '我的錢包也弄丟了。'], ['B', 'Are you hurt? Do you need an ambulance?', '你受傷了嗎？需要救護車嗎？'], ['A', 'No. But this is an emergency!', '沒有。但這是緊急情況！'], ['B', 'Do you have your passport?', '你的護照在身上嗎？'], ['A', 'Yes, it is in my bag.', '在，在我的包包裡。']] }
 ];

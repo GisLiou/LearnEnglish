@@ -6,13 +6,13 @@
   const KEY = 'hh-english-v1';
   const DEFAULTS = {
     nickname: null, streak: 0, xp: 0, lastDay: null, days: [],
-    placed: false, dailyNext: 1, done: {},
+    placed: false, dailyNext: 1, done: {}, best: {},
     settings: { voice: true, sfx: true, rate: 1, theme: 'dark', music: true, vibrate: true }
   };
   function load() {
     try {
       const d = JSON.parse(localStorage.getItem(KEY)) || {};
-      return { ...DEFAULTS, ...d, done: { ...(d.done || {}) }, days: [...(d.days || [])], settings: { ...DEFAULTS.settings, ...(d.settings || {}) } };
+      return { ...DEFAULTS, ...d, done: { ...(d.done || {}) }, best: { ...(d.best || {}) }, days: [...(d.days || [])], settings: { ...DEFAULTS.settings, ...(d.settings || {}) } };
     } catch (e) { return JSON.parse(JSON.stringify(DEFAULTS)); }
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* 無法保存時仍可使用 */ } }
@@ -175,6 +175,7 @@
       },
       duck(on) { ducked = on; if (playing) fadeTo(); },
       pause() { if (playing && el) { el.pause(); } },
+      kill() { clearInterval(fader); playing = false; if (el) { try { el.pause(); el.volume = 0; } catch (e) { } } },
       resume() { if (playing && el) el.play().catch(() => { }); },
       get on() { return playing; }
     };
@@ -228,35 +229,83 @@
     const root = $('#modal-root');
     root.innerHTML = `<div class="overlay"><div class="sheet" role="dialog" aria-modal="true">
       <img src="mascot.png" alt=""><h3>${title}</h3><p>${text}</p>
-      <div class="actions ${cancel ? 'row' : ''}">${cancel ? `<button class="btn ghost" data-x>${cancel}</button>` : ''}
-      <button class="btn ${danger ? 'danger' : ''}" data-ok>${ok}</button></div></div></div>`;
+      <div class="actions">${danger
+        ? `${cancel ? `<button class="btn" data-x>${cancel}</button>` : ''}<button class="btn danger" data-ok>${ok}</button>`
+        : `<button class="btn" data-ok>${ok}</button>${cancel ? `<button class="btn quit" data-x>${cancel}</button>` : ''}`}</div></div></div>`;
     const close = () => { root.innerHTML = ''; };
     root.querySelector('[data-ok]').onclick = () => { close(); onOk && onOk(); };
     const x = root.querySelector('[data-x]'); if (x) x.onclick = close;
     root.querySelector('.overlay').onclick = e => { if (e.target.classList.contains('overlay')) close(); };
   }
 
+  // ---------- 手機「返回鍵」：回到上一個畫面，不會直接關掉 App ----------
+  let backHandler = null, exiting = false;
+  const onBack = fn => { backHandler = fn; };
+  function handleBack() {
+    const m = $('#modal-root');
+    if (m.innerHTML) { const x = m.querySelector('[data-x]'); if (x) x.click(); else m.innerHTML = ''; return; }
+    if (backHandler) backHandler(); else confirmExit();
+  }
+  function armHistory() { try { history.pushState({ hh: 'guard' }, ''); } catch (e) { } }
+  try { history.replaceState({ hh: 'root' }, ''); } catch (e) { }
+  armHistory();
+  window.addEventListener('popstate', () => {
+    if (exiting) return;          // 已經確認要離開：讓瀏覽器真的離開
+    armHistory(); handleBack();
+  });
+  function confirmExit() {
+    modal({ title: '要離開簡單學英文嗎？', text: '你的學習進度都已經保存，下次打開會從這裡繼續。', ok: '離開', cancel: '繼續學習', danger: true, onOk: leaveApp });
+  }
+  function leaveApp() {
+    exiting = true; music.kill(); stopVoice();
+    talk({ mood: 'nod', sparks: false, buttons: '<button class="btn" id="stay">回來繼續學習</button>' });
+    mascotLine($('#line'), '{name}，下次見！音樂已經關掉了，你可以直接關閉這個畫面。');
+    $('#stay').onclick = () => { exiting = false; armHistory(); sfx.tap(); if (data.settings.music) music.start(); screenHome(); };
+    try { history.back(); } catch (e) { }   // 回到最前面，下一次按返回就會真的離開
+    try { window.close(); } catch (e) { }
+  }
+  // 切到別的 App 或關掉螢幕時，音樂立刻暫停
+  document.addEventListener('visibilitychange', () => { if (document.hidden) music.pause(); else if (!exiting) music.resume(); });
+  window.addEventListener('pagehide', () => music.kill());
+
   function show(html, cls = '') {
+    backHandler = null;
     stopListening(); clearTimeout(typingTimer); stopVoice();
     $('#modal-root').innerHTML = ''; $$('.kw-tip').forEach(t => t.remove());
     app.className = cls;
     app.innerHTML = `<section class="screen">${html}</section>`;
     window.scrollTo(0, 0);
   }
+  // 每個畫面都是：固定在上方的標頭（可選）＋可捲動內容＋固定在下方的按鈕區（可選）
+  function page({ top = '', body = '', bottom = '', cls = '', bodyCls = '', footId = '' }) {
+    show(`${top ? `<header class="bar-top">${top}</header>` : ''}
+      <div class="body ${bodyCls}">${body}</div>
+      ${bottom ? `<footer class="bar-bottom"${footId ? ` id="${footId}"` : ''}>${bottom}</footer>` : ''}`, cls);
+  }
+  // 內容頁的標頭：紅色「返回」＋標題
+  const navTop = title => `<button class="back-pill" id="back">${ICON.back}<span>返回</span></button><h1>${title}</h1>`;
+  // 浣浣說話的對話頁：浣浣＋泡泡在中間，按鈕固定在下方
+  function talk({ mood = '', sparks = true, size = '', extra = '', buttons = '' }) {
+    page({ body: `<div class="stage">${mascot({ mood, sparks, size })}${bubble('line')}</div>${extra}`,
+      bottom: `<div class="actions rise late">${buttons}</div>`, bodyCls: 'center' });
+  }
 
   // ========== 開場打招呼 + 輸入暱稱 ==========
   function screenWelcome({ rename = false } = {}) {
-    show(`<div class="stage">${mascot()}${bubble('line')}</div>
-      <form class="name-form reveal late" id="nf" autocomplete="off">
+    talk({
+      extra: `<form class="name-form rise late" id="nf" autocomplete="off">
         <div class="field">
           <input id="nick" maxlength="12" placeholder="輸入你的暱稱" enterkeyhint="done" aria-label="你的暱稱" value="${rename ? name() : ''}">
           ${SR ? `<button type="button" class="mic" id="mic" aria-label="用說的輸入">${ICON.mic}</button>` : ''}
         </div>
         <div class="hint" id="hint">${SR ? '可以打字，也可以按麥克風用說的' : ''}</div>
-      </form>
-      <div class="actions reveal late"><button class="btn" id="next" form="nf" type="submit">下一步</button></div>`);
+      </form>`,
+      buttons: `<button class="btn" id="next" form="nf" type="submit">下一步</button>
+        <button class="btn quit" id="cancel" type="button">${rename ? '取消，不改名字' : '離開'}</button>` });
+    onBack(rename ? () => screenSettings() : null);
 
     mascotLine($('#line'), rename ? '想換成什麼名字呢？' : '嗨，我是浣浣！這裡是簡單學英文，你的名字是？');
+    $('#cancel').onclick = () => { sfx.tap(); rename ? screenSettings() : confirmExit(); };
 
     const input = $('#nick'), hint = $('#hint'), next = $('#next');
     const sync = () => { next.disabled = !input.value.trim(); };
@@ -305,40 +354,36 @@
 
   function screenConfirm(v, rename) {
     const n = esc(v);
-    show(`<div class="stage">${mascot({ mood: 'nod', sparks: false })}${bubble('line')}</div>
-      <div class="actions row reveal late">
-        <button class="btn ghost" id="no">不是，重新輸入</button>
-        <button class="btn green" id="yes">對！</button>
-      </div>`);
+    talk({ mood: 'nod', sparks: false, buttons: `<button class="btn green" id="yes">對，就是這個名字</button>
+        <button class="btn quit" id="no">不是，重新輸入</button>` });
     typeInto($('#line'), `喔喔，你的名字是<b class="name-chip">${n}</b>嗎？`, `喔喔，你的名字是${v}嗎？`);
+    onBack(() => $('#no').click());
     $('#no').onclick = () => { sfx.soft(); screenWelcome({ rename }); setTimeout(() => { const i = $('#nick'); if (i) { i.value = v; i.dispatchEvent(new Event('input')); } }, 0); };
     $('#yes').onclick = () => { data.nickname = v; save(); sfx.yay(); screenSaved(rename); };
   }
 
   function screenSaved(rename) {
-    show(`<div class="stage">${mascot({ mood: 'joy' })}${bubble('line')}</div>
-      <div class="actions reveal late"><button class="btn" id="go">${rename ? '回到設定' : '下一步'}</button></div>`);
+    talk({ mood: 'joy', buttons: `<button class="btn" id="go">${rename ? '回到設定' : '下一步'}</button>` });
     mascotLine($('#line'), rename ? '好的，{name}！以後就這樣叫你囉。' : '太好了，{name}！我會一直記得你的。我們一起開始學英文吧！');
     $('#go').onclick = () => { sfx.tap(); rename ? screenSettings() : screenPlacementIntro(); };
+    onBack(() => $('#go').click());
   }
 
   function screenBack() {
-    show(`<div class="stage">${mascot()}${bubble('line')}</div>
-      <div class="actions reveal late"><button class="btn" id="go">進入首頁</button></div>`);
+    talk({ buttons: '<button class="btn" id="go">進入首頁</button><button class="btn quit" id="leave">離開</button>' });
     mascotLine($('#line'), '歡迎回來，{name}！今天也一起學英文吧。');
+    $('#leave').onclick = () => { sfx.tap(); confirmExit(); };
     $('#go').onclick = () => { sfx.tap(); data.placed ? screenHome() : screenPlacementIntro(); };
   }
 
   // ========== 程度測驗 ==========
   const CHECKPOINTS = [1, 4, 7, 10, 13, 16, 19, 22, 25, 28];
   function screenPlacementIntro(fromSettings = false) {
-    show(`<div class="stage">${mascot({ mood: 'nod' })}${bubble('line')}</div>
-      <div class="actions reveal late">
-        <button class="btn" id="start">開始測驗（約 10 題）</button>
-        <button class="btn ghost" id="skip">${fromSettings ? '取消' : '跳過，從第 1 單元開始'}</button>
-      </div>`);
+    talk({ mood: 'nod', buttons: `<button class="btn" id="start">開始測驗（約 10 題）</button>
+        <button class="btn ${fromSettings ? 'quit' : 'ghost'}" id="skip">${fromSettings ? '取消，回到設定' : '跳過，從第 1 單元開始'}</button>` });
     mascotLine($('#line'), '{name}，我們先做個小測驗，看看從哪一課開始最適合你！不會的題目用猜的就好。');
     $('#start').onclick = () => { sfx.tap(); startPlacement(); };
+    if (fromSettings) onBack(() => screenSettings());
     $('#skip').onclick = () => {
       sfx.tap();
       if (fromSettings) { screenSettings(); return; }
@@ -361,14 +406,12 @@
   }
   function screenPlacementResult(start, score) {
     const u = unitById(start);
-    show(`<div class="stage">${mascot({ mood: 'joy' })}${bubble('line')}</div>
-      <div class="actions reveal late">
-        <button class="btn" id="a">從第 ${start} 單元開始</button>
-        ${start > 1 ? '<button class="btn ghost" id="b">從第 1 單元開始</button>' : ''}
-      </div>`);
-    mascotLine($('#line'), `測驗完成！{name}答對了 ${score} 題。建議你從第 ${start} 單元「${u.title}」開始。前面的單元隨時可以在「自選課程」複習。`);
+    talk({ mood: 'joy', buttons: `<button class="btn" id="a">從第 ${start} 單元開始</button>
+        ${start > 1 ? '<button class="btn ghost" id="b">從第 1 單元開始</button>' : ''}` });
+    mascotLine($('#line'), `測驗完成！10 題裡{name}答對了 ${score} 題。建議你從第 ${start} 單元「${u.title}」開始。前面的單元隨時可以在「自選課程」複習。`);
     const go = n => { data.placed = true; data.dailyNext = n; save(); sfx.tap(); screenHome(); };
     $('#a').onclick = () => go(start);
+    onBack(() => go(start));
     const b = $('#b'); if (b) b.onclick = () => go(1);
   }
 
@@ -397,14 +440,13 @@
     const nu = unitById(next);
     const doneToday = data.days.includes(dayKey());
     const doneCount = Object.keys(data.done).length;
-    show(`<header class="topbar">
-        <div class="brand"><img src="mascot.png" alt="">簡單學英文</div>
+    const wordCount = new Set(COURSE.filter(u => data.done[u.id]).flatMap(u => u.words.map(w => w[0].toLowerCase()))).size;
+    page({ top: `<div class="brand"><img src="mascot.png" alt="">簡單學英文</div>
         <div class="pill flame" title="連續學習天數">${ICON.flame}${currentStreak()}</div>
         <div class="pill star" title="經驗值">${ICON.star}${data.xp}</div>
-        <button class="icon-btn" id="set" aria-label="設定">${ICON.gear}</button>
-      </header>
-      <div class="hello"><img src="mascot.png" alt="">
-        <div><h1>${greetWord()}，<span class="name-chip">${name()}</span>！</h1><p>${doneToday ? '今天的課已經完成了，好棒！想多學一點也可以喔。' : '每天 10 分鐘，浣浣陪你慢慢進步。'}</p></div></div>
+        <button class="icon-btn" id="set" aria-label="設定">${ICON.gear}</button>`,
+      body: `<div class="hello"><img src="mascot.png" alt="">
+        <div><h1>${greetWord()}，<span class="name-chip">${name()}</span>！</h1><p>${doneToday ? '今天的課已經完成了！想多學一點也可以喔。' : (doneCount ? `已上完 ${doneCount} 個單元、學過 ${wordCount} 個單字，今天再學一課吧！` : '每天一課，大約 10 分鐘。')}</p></div></div>
       <div class="week" aria-label="本週學習">${weekDots()}</div>
       <div class="section-title">選擇學習方式</div>
       <button class="course daily" id="daily"><span class="ico">${ICON.sun}</span>
@@ -412,7 +454,9 @@
         <p>${finishedAll ? '30 個單元都學完了！從頭再複習一輪吧' : `${esc(nu.title)} · ${TOPIC[nu.topic]} · 約 10 分鐘`}</p></span><span class="go">${ICON.chevron}</span></button>
       <button class="course free" id="free"><span class="ico">${ICON.map}</span>
         <span><h2>自選課程<span class="badge soft">${doneCount}/${COURSE.length}</span></h2><p>30 個單元，自由複習或跳級</p></span><span class="go">${ICON.chevron}</span></button>
-      <div class="foot">第 2 階段預覽版</div>`);
+      <div class="foot">第 2 階段預覽版</div>`,
+      bottom: '<button class="btn quit" id="leave">離開學習</button>' });
+    $('#leave').onclick = () => { sfx.tap(); confirmExit(); };
     $('#daily').onclick = () => { sfx.tap(); startLesson(finishedAll ? 1 : next, 'daily'); };
     $('#free').onclick = () => { sfx.tap(); screenMap(); };
     $('#set').onclick = () => { sfx.tap(); screenSettings(); };
@@ -420,16 +464,16 @@
 
   // ========== 自選課程（課程地圖） ==========
   function screenMap() {
-    show(`<header class="header"><button class="icon-btn" id="back" aria-label="返回">${ICON.back}</button><h1>自選課程</h1></header>
-      <p class="map-note">點任何一個單元都可以上。在這裡上課只算複習，不會改變每日課程的進度。</p>
+    page({ top: navTop('自選課程'), body: `<p class="map-note">點任何一個單元都可以上。在這裡上課只算複習，不會改變每日課程的進度。</p>
       <div class="units">${COURSE.map(u => {
         const done = !!data.done[u.id], cur = u.id === data.dailyNext;
         return `<button class="unit ${done ? 'done' : ''} ${cur ? 'cur' : ''}" data-u="${u.id}">
           <span class="num">${done ? ICON.check : u.id}</span>
           <span class="meta"><b>${esc(u.title)}</b><small>${esc(u.en)} · ${TOPIC[u.topic]}</small></span>
           ${cur ? '<span class="tag">每日進度</span>' : ''}</button>`;
-      }).join('')}</div>`);
+      }).join('')}</div>` });
     $('#back').onclick = () => { sfx.tap(); screenHome(); };
+    onBack(() => screenHome());
     $$('.unit').forEach(b => b.onclick = () => { sfx.tap(); startLesson(+b.dataset.u, 'free'); });
     const cur = $('.unit.cur'); if (cur) setTimeout(() => cur.scrollIntoView({ block: 'center' }), 50);
   }
@@ -532,10 +576,12 @@
     return `<div class="steps">${['看對話', '學單字', '練習'].map((t, i) => `<span class="${i + 1 === n ? 'on' : i + 1 < n ? 'done' : ''}"><b>${i + 1 < n ? '✓' : i + 1}</b>${t}</span>`).join('')}</div>`;
   }
   function lessonTop(n) {
-    return `<header class="lesson-top"><button class="icon-btn plain" id="quit" aria-label="離開">${ICON.close}</button>${steps(n)}</header>`;
+    return `<button class="back-pill" id="quit">${ICON.close}<span>離開</span></button>${steps(n)}`;
   }
   function bindQuit(text = '這一課的進度不會保存喔。', onOk = screenHome) {
-    $('#quit').onclick = () => modal({ title: '確定要離開嗎？', text, ok: '離開', cancel: '繼續學習', danger: true, onOk });
+    const ask = () => modal({ title: '確定要離開這一課嗎？', text, ok: '離開', cancel: '繼續學習', danger: true, onOk });
+    $('#quit').onclick = () => { sfx.tap(); ask(); };
+    onBack(ask);
   }
   const face = (who, u) => who === 'A'
     ? `<span class="face mascot-face"><img src="mascot.png" alt="浣浣"></span>`
@@ -568,18 +614,17 @@
 
   function startLesson(uid, mode) {
     const u = unitById(uid);
-    loadPack(uid).then(() => screenStory(u, mode));
+    const t = setTimeout(() => toast('浣浣正在準備課程…'), 300);
+    loadPack(uid).then(() => { clearTimeout(t); screenStory(u, mode); });
   }
 
   // ① 情境對話：一句一句出現，英文在上、中文在下，重點單字可點
   function screenStory(u, mode) {
-    show(`<div class="lesson">${lessonTop(1)}
-      <div class="scene"><span class="scene-emo">${u.scene}</span><div><b>第 ${u.id} 單元 · ${esc(u.title)}</b><small>${esc(u.place)} · 浣浣和${esc(u.npc.name)}</small></div></div>
+    page({ top: lessonTop(1), cls: 'wide', body: `<div class="scene"><span class="scene-emo">${u.scene}</span><div><b>第 ${u.id} 單元 · ${esc(u.title)}</b><small>${esc(u.place)} · 浣浣和${esc(u.npc.name)}</small></div></div>
       <div class="coach story-coach"><img src="mascot.png" alt="浣浣" class="coach-img"><div class="coach-bubble">先聽聽這段對話！<small>藍色底線的字是今天的重點，點一下就能聽</small></div></div>
-      <div class="chat" id="chat"></div>
-      <div class="lesson-foot"><button class="btn" id="next">▶ 開始聽對話</button>
-        ${mode === 'free' ? '<button class="linkish center" id="skip">我已經看過了，直接練習</button>' : ''}</div>
-    </div>`, 'wide-lesson');
+      <div class="chat" id="chat"></div>`,
+      bottom: `<button class="btn" id="next">▶ 開始聽對話</button>
+        ${mode === 'free' ? '<button class="linkish center" id="skip">我已經看過了，直接練習</button>' : ''}` });
     music.start(); bindQuit();
     const chat = $('#chat'); bindKeywords(chat);
     let shown = 0;
@@ -608,6 +653,7 @@
         if (shown === u.lines.length) {
           const go = document.createElement('button'); go.className = 'btn green'; go.id = 'go'; go.textContent = '下一步：認識單字';
           next.after(go); go.onclick = () => { sfx.tap(); screenCards(u, mode); };
+          const sk = $('#skip'); if (sk) sk.remove();
           next.classList.add('ghost');
         }
       } else {
@@ -623,11 +669,10 @@
   // ② 單字卡：一次一張，大圖示＋英文＋中文＋對話中的例句
   function screenCards(u, mode) {
     let i = 0;
-    show(`<div class="lesson">${lessonTop(2)}
-      <div class="card-stage" id="stage"></div>
-      <div class="dots" id="dots">${u.words.map(() => '<i></i>').join('')}</div>
-      <div class="lesson-foot"><div class="row2"><button class="btn ghost" id="prev">上一個</button><button class="btn" id="nextc">下一個</button></div></div>
-    </div>`, 'wide-lesson');
+    page({ top: lessonTop(2), cls: 'wide',
+      body: `<div class="card-stage" id="stage"></div>
+      <div class="dots" id="dots">${u.words.map(() => '<i></i>').join('')}</div>`,
+      bottom: '<div class="row2"><button class="btn ghost" id="prev">上一個</button><button class="btn" id="nextc">下一個</button></div>' });
     music.start(); bindQuit();
     const stage = $('#stage'); bindKeywords(stage);
     const render = () => {
@@ -655,8 +700,7 @@
 
   // ③ 練習
   const PRAISE = ['做得好，{name}！', '太棒了！', '{name}，你好厲害！', '答對了！', '完全正確！', '好耶，繼續保持！'];
-  const COMFORT = ['沒關係，{name}，記一下正確答案', '差一點點！再記一下', '別擔心，等一下會再練一次'];
-  const CHEER = ['加油，{name}！', '慢慢來，不急喔', '你可以的！', '仔細想一想'];
+  const COMFORT = ['沒關係，{name}，記一下正確答案', '這題答錯了，看一下正確答案', '別擔心，這題等一下會再練一次'];
   function startQuiz(u, mode) {
     runQuiz({ questions: buildLesson(u), title: `第 ${u.id} 單元 · ${u.title}`, onDone: res => finishLesson(u, mode, res) });
   }
@@ -680,26 +724,22 @@
     const firstTry = new Array(total).fill(null);
     let solved = 0, current = null, answered = false, combo = 0;
 
-    show(`<div class="lesson">
-      <header class="lesson-top">
-        <button class="icon-btn plain" id="quit" aria-label="離開">${ICON.close}</button>
-        <div class="bar"><i id="bar"></i></div>
-        <span class="combo" id="combo"></span>
-      </header>
-      <div class="lesson-title">${esc(title)}</div>
-      <div class="q" id="q"></div>
-      <div class="lesson-foot" id="foot"><button class="btn" id="check" disabled>檢查</button></div>
-    </div>`, 'wide-lesson');
+    page({ cls: 'wide', footId: 'foot',
+      top: `<button class="back-pill" id="quit">${ICON.close}<span>離開</span></button>
+        <div class="progress"><div class="bar"><i id="bar"></i></div><small id="count"></small></div>
+        <span class="combo" id="combo"></span>`,
+      body: `<div class="lesson-title">${esc(title)}</div><div class="q" id="q"></div>`,
+      bottom: '<button class="btn" id="check" disabled>檢查</button>' });
     music.start();
     bindQuit(placement ? '測驗還沒完成，之後可以在設定裡重新測驗。' : '這一課的進度不會保存喔。', () => placement && !data.placed ? screenPlacementIntro() : screenHome());
 
-    const setBar = () => { $('#bar').style.width = `${Math.round(solved / total * 100)}%`; };
+    const setBar = () => { $('#bar').style.width = `${Math.round(solved / total * 100)}%`; $('#count').textContent = `${solved}/${total}`; };
     setBar();
 
     function next() {
-      if (!queue.length) { onDone({ firstTry }); return; }
+      if (!queue.length) { onDone({ firstTry, questions }); return; }
       current = queue.shift(); answered = false;
-      const foot = $('#foot'); foot.className = 'lesson-foot';
+      const foot = $('#foot'); foot.className = 'bar-bottom';
       foot.innerHTML = `<button class="btn" id="check" disabled>${current.type === 'match' ? '配對完成後會自動繼續' : '檢查'}</button>`;
       render(current);
     }
@@ -803,10 +843,10 @@
       if (q.speakAfter) setTimeout(() => say(q.speakAfter), 300);
       const msg = placement ? (ok ? '答對了！' : '沒關係，繼續下一題')
         : (ok ? pick(PRAISE) : pick(COMFORT)).replaceAll('{name}', data.nickname || '');
-      foot.className = `lesson-foot ${ok ? 'good' : 'bad'}`;
+      foot.className = `bar-bottom ${ok ? 'good' : 'bad'}`;
       foot.innerHTML = `<div class="fb"><img src="mascot.png" alt="" class="fb-mascot ${ok ? 'hop' : 'sway'}">
           <div><b>${ok ? '✓ ' : ''}${esc(msg)}</b>${!ok && answer && !placement ? `<p>正確答案：<span>${esc(answer)}</span></p>` : ''}</div></div>
-        <button class="btn ${ok ? 'green' : 'danger'}" id="cont">繼續</button>`;
+        <button class="btn ${ok ? 'green' : ''}" id="cont">繼續</button>`;
       $('#cont').onclick = () => { sfx.tap(); stopVoice(); next(); };
     }
 
@@ -828,31 +868,40 @@
     data.xp += gained;
     data.done[u.id] = (data.done[u.id] || 0) + 1;
     if (mode === 'daily' && u.id === data.dailyNext) data.dailyNext = u.id + 1;
+    const prevBest = data.best[u.id];
+    data.best[u.id] = Math.max(prevBest || 0, firstOk);
     save();
 
-    show(`<div class="stage">${mascot({ mood: 'joy' })}${bubble('line')}</div>
-      <div class="stats reveal late">
+    // 第一次答錯的內容，列出來讓使用者再聽一次
+    const missed = [...new Set(res.questions.filter((q, i) => res.firstTry[i] === false && q.type !== 'match').map(q => q.audio || q.answer))];
+    const wrong = total - firstOk;
+    page({ bottom: '<button class="btn" id="go">完成，回到首頁</button>',
+      body: `<div class="stage">${mascot({ mood: 'joy', size: 'small' })}${bubble('line')}</div>
+      <div class="stats rise late">
         <div class="stat"><small>經驗值</small><b class="c-gold">${ICON.star}+${gained}</b></div>
-        <div class="stat"><small>一次答對</small><b class="c-green">${acc}%</b></div>
+        <div class="stat"><small>一次答對</small><b class="c-green">${firstOk}/${total}</b></div>
         <div class="stat"><small>連續學習</small><b class="c-orange">${ICON.flame}${data.streak}天</b></div>
       </div>
-      <div class="learned reveal late"><small>今天學會的單字</small><div>${u.words.map(w => `<button class="chip" data-en="${esc(w[0])}">${w[2]} ${esc(w[0])}</button>`).join('')}</div></div>
-      <div class="actions reveal late"><button class="btn" id="go">完成</button></div>`);
+      ${missed.length ? `<div class="learned rise late"><small>要再多練習的（點一下聽發音）</small><div>${missed.map(t => `<button class="chip miss" data-en="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>` : ''}
+      <div class="learned rise late"><small>這一課的 8 個單字（點一下聽發音）</small><div>${u.words.map(w => `<button class="chip" data-en="${esc(w[0])}">${w[2]} ${esc(w[0])}</button>`).join('')}</div></div>` });
     sfx.yay(); confetti(60); setTimeout(() => confetti(40), 500);
     $$('.chip').forEach(c => c.onclick = () => { say(c.dataset.en); buzz(10); });
-    const tpl = acc >= 90 ? `太厲害了，{name}！第 ${u.id} 單元「${u.title}」幾乎全對！`
-      : acc >= 60 ? `完成第 ${u.id} 單元「${u.title}」了！{name}，你越來越進步囉！`
-        : `{name}，第 ${u.id} 單元完成了！多複習幾次會更熟喔，加油！`;
+    const head = `第 ${u.id} 單元「${u.title}」共 ${total} 題，`;
+    let tpl = acc === 100 ? `太厲害了，{name}！${head}全部第一次就答對！`
+      : wrong === 1 ? `好棒，{name}！${head}只錯了 1 題，下面有列出來，再聽一次就記住了。`
+      : acc >= 60 ? `完成了，{name}！${head}第一次就答對 ${firstOk} 題，錯的 ${wrong} 題已經重新練過，下面也有列出來。`
+        : `{name}，${head}第一次答對 ${firstOk} 題。建議之後到「自選課程」再上一次這個單元，會更熟喔。`;
+    if (prevBest != null && firstOk > prevBest) tpl += `比上次多答對 ${firstOk - prevBest} 題，真的進步了！`;
     mascotLine($('#line'), tpl);
     $('#go').onclick = () => { sfx.tap(); screenHome(); };
+    onBack(() => screenHome());
   }
 
   // ========== 設定 ==========
   function screenSettings() {
     const s = data.settings;
     const rates = [[0.8, '慢'], [1, '正常'], [1.15, '快']];
-    show(`<header class="header"><button class="icon-btn" id="back" aria-label="返回">${ICON.back}</button><h1>設定</h1></header>
-      <div class="list">
+    page({ top: navTop('設定'), body: `<div class="list">
         <div class="item"><div class="label">暱稱<small>浣浣會這樣叫你</small></div><span class="value">${name()}</span><button class="linkish" id="rename">修改</button></div>
         <div class="item"><div class="label">重新測驗程度<small>目前每日課程在第 ${Math.min(data.dailyNext, COURSE.length)} 單元</small></div><button class="linkish" id="retest">測驗</button></div>
       </div>
@@ -864,14 +913,15 @@
         <div class="item"><div class="label">朗讀速度</div><div class="seg" id="rate">${rates.map(([r, l]) => `<button data-r="${r}" class="${s.rate === r ? 'on' : ''}">${l}</button>`).join('')}</div></div>
         <div class="item"><div class="label">試聽英文發音</div><button class="linkish" id="test">播放範例</button></div>
         <div class="item"><div class="label">音效<small>答對、按鈕的提示音</small></div><label class="switch"><input type="checkbox" id="sfx" ${s.sfx ? 'checked' : ''} aria-label="音效"><span></span></label></div>
-        <div class="item"><div class="label">背景音樂<small>上課時的輕柔音樂</small></div><label class="switch"><input type="checkbox" id="music" ${s.music ? 'checked' : ''} aria-label="背景音樂"><span></span></label></div>
+        <div class="item"><div class="label">背景音樂<small>使用 App 時的輕柔音樂</small></div><label class="switch"><input type="checkbox" id="music" ${s.music ? 'checked' : ''} aria-label="背景音樂"><span></span></label></div>
         <div class="item"><div class="label">震動回饋<small>手機答對、答錯時輕輕震動</small></div><label class="switch"><input type="checkbox" id="vib" ${s.vibrate ? 'checked' : ''} aria-label="震動回饋"><span></span></label></div>
       </div>
       <div class="list">
-        <div class="item"><div class="label">清除所有資料<small>暱稱與進度都會刪除，回到第一次打開的樣子</small></div><button class="linkish" id="reset" style="color:var(--coral-d)">清除</button></div>
+        <div class="item"><div class="label">清除所有資料<small>暱稱與進度都會刪除，回到第一次打開的樣子</small></div><button class="linkish red" id="reset">清除</button></div>
       </div>
-      <div class="foot">簡單學英文 · 第 2 階段預覽版<br>英文發音：開源語音模型 Kokoro＋美式發音字典 · 資料只存在這台裝置的瀏覽器裡</div>`);
+      <div class="foot">簡單學英文 · 第 2 階段預覽版<br>英文發音：開源語音模型 Kokoro＋美式發音字典 · 資料只存在這台裝置的瀏覽器裡</div>` });
     $('#back').onclick = () => { sfx.tap(); screenHome(); };
+    onBack(() => screenHome());
     $('#rename').onclick = () => { sfx.tap(); screenWelcome({ rename: true }); };
     $('#retest').onclick = () => { sfx.tap(); screenPlacementIntro(true); };
     $('#voice').onchange = e => { s.voice = e.target.checked; save(); if (!s.voice) stopVoice(); };
