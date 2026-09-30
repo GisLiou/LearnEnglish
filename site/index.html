@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12151C" id="theme-color">
+<script>
+  /* 在畫面出現前先套用深淺模式，避免閃一下 */
+  (function () {
+    var t = 'dark';
+    try { var s = (JSON.parse(localStorage.getItem('hh-english-v1')) || {}).settings; if (s && s.theme) t = s.theme; } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('theme-color').setAttribute('content', t === 'dark' ? '#12151C' : '#F5F7FB');
+  })();
+</script>
+<meta name="description" content="浣浣陪你每天學一點英文">
+<title>簡單學英文</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app" aria-live="polite"></main>
+<div id="modal-root"></div>
+<div id="toast" role="status"></div>
+<script src="courses.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
