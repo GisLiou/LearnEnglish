@@ -1,0 +1,5 @@
+# 不上傳到 GitHub 的資料夾（工作用檔案）
+Claude outputs/
+app/
+tools/
+site/
