@@ -57,7 +57,7 @@ img { display: block; max-width: 100%; }
   position: sticky; top: 0; z-index: 30;
   display: flex; align-items: center; gap: 10px;
   padding: max(12px, env(safe-area-inset-top)) var(--gutter) 12px;
-  background: var(--bg); border-bottom: 2px solid var(--line);
+  background: var(--bg); border-bottom: 1px solid var(--line);
 }
 .bar-top h1 { margin: 0; font-size: 23px; font-weight: 900; }
 
@@ -68,7 +68,7 @@ img { display: block; max-width: 100%; }
   position: sticky; bottom: 0; z-index: 30;
   display: grid; gap: 12px;
   padding: 14px var(--gutter) max(16px, env(safe-area-inset-bottom));
-  background: var(--bg); border-top: 2px solid var(--line);
+  background: var(--bg); border-top: 1px solid var(--line);
 }
 .bar-bottom.good { background: var(--green-soft); border-top-color: transparent; animation: slideUp .25s ease both; }
 .bar-bottom.bad { background: var(--red-soft); border-top-color: transparent; animation: slideUp .25s ease both; }
@@ -88,7 +88,7 @@ img { display: block; max-width: 100%; }
   background: var(--blue); color: #fff; box-shadow: 0 4px 0 var(--blue-d);
   transition: transform .08s, box-shadow .08s, filter .15s;
 }
-.btn:hover { filter: brightness(1.04); }
+@media (hover: hover) { .btn:hover { filter: brightness(1.04); } .course:hover, .unit:hover { border-color: var(--blue); } }
 .btn:active { transform: translateY(4px); box-shadow: none; }
 .btn:disabled { background: var(--surface-2); color: var(--muted); box-shadow: 0 4px 0 var(--line); cursor: not-allowed; }
 .btn.ghost { background: var(--surface); color: var(--ink); border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); }
@@ -201,7 +201,6 @@ img { display: block; max-width: 100%; }
   padding: 18px; margin-bottom: 14px; box-shadow: 0 4px 0 var(--line);
   transition: transform .08s, box-shadow .08s, border-color .15s;
 }
-.course:hover { border-color: var(--blue); }
 .course:active { transform: translateY(4px); box-shadow: none; }
 .course .ico { flex: none; width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; }
 .course .ico svg { width: 30px; height: 30px; }
@@ -223,7 +222,6 @@ img { display: block; max-width: 100%; }
 .month b { display: block; font-size: 20px; font-weight: 900; color: var(--blue); }
 .month small { color: var(--muted); font-size: 15px; }
 .unit { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 14px 16px; box-shadow: 0 3px 0 var(--line); transition: transform .08s, box-shadow .08s, border-color .15s; scroll-margin: 90px; }
-.unit:hover { border-color: var(--blue); }
 .unit:active { transform: translateY(3px); box-shadow: none; }
 .unit .num { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; background: var(--surface-2); color: var(--muted); }
 .unit .num svg { width: 22px; height: 22px; }
@@ -253,19 +251,7 @@ img { display: block; max-width: 100%; }
 .seg button.on { background: var(--surface); color: var(--blue); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
 
 /* ---------- 上課：標頭 ---------- */
-.steps { flex: 1; display: flex; gap: 6px; min-width: 0; }
-.steps span { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 2px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 14px; font-weight: 800; white-space: nowrap; }
-.steps b { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; background: var(--line); color: var(--muted); }
-.steps .on { background: var(--blue-soft); color: var(--blue); }
-.steps .on b { background: var(--blue); color: #fff; }
-.steps .done { color: var(--green); }
-.steps .done b { background: var(--green); color: #fff; }
-@media (max-width: 400px) { .steps span:not(.on) { font-size: 0; flex: 0 0 34px; } .steps span:not(.on) b { font-size: 12px; } }
 
-.progress { flex: 1; display: flex; align-items: center; gap: 8px; }
-.bar { flex: 1; height: 20px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
-.bar i { display: block; height: 100%; width: 0; background: var(--green); border-radius: 999px; transition: width .4s cubic-bezier(.3, .9, .3, 1.1); box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .08); }
-.progress small { font-size: 16px; font-weight: 800; color: var(--muted); min-width: 3.2em; text-align: right; }
 .combo { position: absolute; left: 50%; translate: -50% 0; top: calc(100% + 8px); white-space: nowrap; font-size: 16px; font-weight: 900; color: var(--orange); background: var(--surface); border: 2px solid rgba(242, 133, 31, .4); padding: 4px 12px; border-radius: 999px; opacity: 0; pointer-events: none; }
 .combo.show { animation: comboIn 1.8s ease both; }
 @keyframes comboIn { 0% { opacity: 0; transform: translateY(-8px) scale(.8); } 15% { opacity: 1; transform: scale(1.08); } 80% { opacity: 1; } 100% { opacity: 0; } }
@@ -480,3 +466,33 @@ img { display: block; max-width: 100%; }
 html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 img { -webkit-user-drag: none; user-select: none; }
+
+/* 練習：填空題可以播放整句、排句子可以聽自己排的 */
+.cloze .msg-bubble { padding-right: 56px; }
+.arr-foot { grid-template-columns: 1fr 1fr; }
+.arr-foot .btn { white-space: nowrap; padding: 10px 12px; }
+.arr-foot .btn svg { width: 22px; height: 22px; }
+.tile.speaking { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
+
+/* 上課標頭：三段進度（看對話／學單字／練習），練習那一段會跟著題數填滿 */
+.lprog { flex: 1; display: flex; gap: 6px; min-width: 0; }
+.lprog i { flex: 1; height: 14px; border-radius: 999px; background: var(--surface-2); overflow: hidden; transition: background .3s; }
+.lprog i.done { background: var(--green); }
+.lprog i.on { background: var(--blue); }
+.lprog i.fill { background: var(--surface-2); }
+.lprog i b { display: block; height: 100%; width: 0; background: var(--green); border-radius: 999px; transition: width .4s cubic-bezier(.3, .9, .3, 1.1); }
+.lstep { flex: none; min-width: 3.4em; text-align: right; font-size: 16px; font-weight: 800; color: var(--muted); white-space: nowrap; }
+/* 題目卡：圖示＋文字在左，播放鍵在右 */
+.prompt .p-text { flex: 1; min-width: 0; }
+.prompt .play { margin-left: auto; }
+.prompt .play + .play { margin-left: 0; }
+
+/* 選項：兩欄平均，長字自動換行，不會超出畫面 */
+.options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.options.wide { grid-template-columns: minmax(0, 1fr); }
+.opt { min-width: 0; }
+.opt .o-t { min-width: 0; overflow-wrap: break-word; hyphens: auto; }
+.opt.en:has(.o-emo) { padding: 14px 12px; gap: 8px; font-size: 21px; }
+.opt.en .o-emo { font-size: 24px; }
+.match { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mtile { min-width: 0; overflow-wrap: break-word; hyphens: auto; }
