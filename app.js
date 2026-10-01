@@ -1,4 +1,4 @@
-/* 簡單學英文 · 第 2 階段：開場、暱稱、程度測驗、每日／自選課程、點選題、進度 */
+/* 浣浣學英文 · 第 2 階段：開場、暱稱、程度測驗、每日／自選課程、點選題、進度 */
 (() => {
   'use strict';
 
@@ -6,13 +6,13 @@
   const KEY = 'hh-english-v1';
   const DEFAULTS = {
     nickname: null, streak: 0, xp: 0, lastDay: null, days: [],
-    placed: false, dailyNext: 1, done: {}, best: {},
+    placed: false, dailyNext: 1, done: {}, best: {}, flags: {}, learned: {}, flagsVer: 2,
     settings: { voice: true, sfx: true, rate: 1, theme: 'dark', music: true, vibrate: true }
   };
   function load() {
     try {
       const d = JSON.parse(localStorage.getItem(KEY)) || {};
-      return { ...DEFAULTS, ...d, done: { ...(d.done || {}) }, best: { ...(d.best || {}) }, days: [...(d.days || [])], settings: { ...DEFAULTS.settings, ...(d.settings || {}) } };
+      return { ...DEFAULTS, ...d, done: { ...(d.done || {}) }, best: { ...(d.best || {}) }, flags: d.flagsVer === 2 ? { ...(d.flags || {}) } : {}, flagsVer: 2, learned: { ...(d.learned || {}) }, days: [...(d.days || [])], settings: { ...DEFAULTS.settings, ...(d.settings || {}) } };
     } catch (e) { return JSON.parse(JSON.stringify(DEFAULTS)); }
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* 無法保存時仍可使用 */ } }
@@ -53,6 +53,8 @@
     map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4z"/><path d="M9 4v13M15 6.5v13"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+    flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg>',
     turtle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 5 0 0 1 16 0z"/><path d="M20 15h1.5a1.5 1.5 0 0 0 0-3H19"/><path d="M6 15v2M16 15v2"/></svg>'
   };
 
@@ -254,22 +256,32 @@
     armHistory(); handleBack();
   });
   function confirmExit() {
-    modal({ title: '要離開簡單學英文嗎？', text: '你的學習進度都已經保存，下次打開會從這裡繼續。', ok: '離開', cancel: '繼續學習', danger: true, onOk: leaveApp });
+    modal({ title: '要離開浣浣學英文嗎？', text: '你的學習進度都已經保存，下次打開會從這裡繼續。', ok: '離開', cancel: '繼續學習', danger: true, onOk: leaveApp });
   }
+  // 確認離開：關掉音樂，直接關閉／離開這個頁面
   function leaveApp() {
     exiting = true; music.kill(); stopVoice();
-    talk({ mood: 'nod', sparks: false, buttons: '<button class="btn" id="stay">回來繼續學習</button>' });
-    mascotLine($('#line'), '{name}，下次見！音樂已經關掉了，你可以直接關閉這個畫面。');
-    $('#stay').onclick = () => { exiting = false; armHistory(); sfx.tap(); if (data.settings.music) music.start(); screenHome(); };
-    try { history.back(); } catch (e) { }   // 回到最前面，下一次按返回就會真的離開
-    try { window.close(); } catch (e) { }
+    $('#modal-root').innerHTML = '';
+    try { window.close(); } catch (e) { }                // 從主畫面圖示打開（App 模式）時會直接關閉
+    setTimeout(() => {
+      if (document.hidden) return;
+      try { history.go(-2); } catch (e) { }              // 瀏覽器分頁：回到打開本網站之前的頁面
+      setTimeout(() => {
+        if (document.hidden) return;
+        // 瀏覽器不允許網頁自己關閉時：畫面變成空白，下一次按返回鍵就會真的離開
+        try { history.go(-1); } catch (e) { }
+        app.className = ''; app.innerHTML = '<section class="screen bye" id="bye"></section>';
+        $('#bye').onclick = () => { exiting = false; armHistory(); if (data.settings.music) music.start(); screenHome(); };
+      }, 350);
+    }, 150);
   }
   // 切到別的 App 或關掉螢幕時，音樂立刻暫停
   document.addEventListener('visibilitychange', () => { if (document.hidden) music.pause(); else if (!exiting) music.resume(); });
   window.addEventListener('pagehide', () => music.kill());
 
+  let dragOff = null;   // 排句子題的拖曳監聽，換畫面時要拿掉
   function show(html, cls = '') {
-    backHandler = null;
+    backHandler = null; if (dragOff) { dragOff(); dragOff = null; }
     stopListening(); clearTimeout(typingTimer); stopVoice();
     $('#modal-root').innerHTML = ''; $$('.kw-tip').forEach(t => t.remove());
     app.className = cls;
@@ -304,7 +316,7 @@
         <button class="btn quit" id="cancel" type="button">${rename ? '取消，不改名字' : '離開'}</button>` });
     onBack(rename ? () => screenSettings() : null);
 
-    mascotLine($('#line'), rename ? '想換成什麼名字呢？' : '嗨，我是浣浣！這裡是簡單學英文，你的名字是？');
+    mascotLine($('#line'), rename ? '想換成什麼名字呢？' : '嗨，我是浣浣！歡迎來到浣浣學英文，你的名字是？');
     $('#cancel').onclick = () => { sfx.tap(); rename ? screenSettings() : confirmExit(); };
 
     const input = $('#nick'), hint = $('#hint'), next = $('#next');
@@ -441,7 +453,7 @@
     const doneToday = data.days.includes(dayKey());
     const doneCount = Object.keys(data.done).length;
     const wordCount = new Set(COURSE.filter(u => data.done[u.id]).flatMap(u => u.words.map(w => w[0].toLowerCase()))).size;
-    page({ top: `<div class="brand"><img src="mascot.png" alt="">簡單學英文</div>
+    page({ top: `<div class="brand"><img src="mascot.png" alt="">浣浣學英文</div>
         <div class="pill flame" title="連續學習天數">${ICON.flame}${currentStreak()}</div>
         <div class="pill star" title="經驗值">${ICON.star}${data.xp}</div>
         <button class="icon-btn" id="set" aria-label="設定">${ICON.gear}</button>`,
@@ -454,11 +466,14 @@
         <p>${finishedAll ? `${COURSE.length} 個單元都學完了！從頭再複習一輪吧` : `${esc(nu.title)} · ${TOPIC[nu.topic]} · 約 10 分鐘`}</p></span><span class="go">${ICON.chevron}</span></button>
       <button class="course free" id="free"><span class="ico">${ICON.map}</span>
         <span><h2>自選課程<span class="badge soft">${doneCount}/${COURSE.length}</span></h2><p>${COURSE.length} 個單元，自由複習或跳級</p></span><span class="go">${ICON.chevron}</span></button>
+      <button class="course sounds" id="sounds"><span class="ico">${ICON.speaker}</span>
+        <span><h2>單字學習<span class="badge soft">已學 ${Object.keys(data.learned).filter(k => k[0] === 'w').length}/${COURSE.length * 8}</span></h2><p>聽全部的單字和句子，學會了就打勾</p></span><span class="go">${ICON.chevron}</span></button>
       <div class="foot">第 2 階段預覽版</div>`,
       bottom: '<button class="btn quit" id="leave">離開學習</button>' });
     $('#leave').onclick = () => { sfx.tap(); confirmExit(); };
     $('#daily').onclick = () => { sfx.tap(); startLesson(finishedAll ? 1 : next, 'daily'); };
     $('#free').onclick = () => { sfx.tap(); screenMap(); };
+    $('#sounds').onclick = () => { sfx.tap(); screenSounds(); };
     $('#set').onclick = () => { sfx.tap(); screenSettings(); };
   }
 
@@ -585,7 +600,7 @@
     const a = L(s, u), tokens = a.en.split(' ');
     const inSent = new Set(tokens.map(t => norm(t)));
     const extra = shuffle(u.words.flatMap(w => w[0].split(' ')).filter(t => !inSent.has(norm(t)))).slice(0, 2);
-    return { type: 'arrange', title: '把這句英文排出來', prompt: a.zh, promptLang: 'zh', tiles: shuffle([...tokens, ...extra]), answer: a.en, speakAfter: a.en };
+    return { type: 'arrange', title: '聽一聽，把這句英文排出來', prompt: a.zh, promptLang: 'zh', audio: a.en, tiles: shuffle([...tokens, ...extra]), answer: a.en, speakAfter: a.en };
   }
   function qMatch(words, u) { // 配對
     return { type: 'match', title: '把英文和中文配成一對', pairs: words.map(w => W(w, u)) };
@@ -810,22 +825,101 @@
       }
 
       if (q.type === 'arrange') {
-        box.innerHTML = `${coach(q.title + retry)}
-          <div class="prompt zh"><span class="p-text">${esc(q.prompt)}</span></div>
+        box.innerHTML = `${coach(q.title + retry + '<small>點單字放進句子；按住單字可以拖曳調整順序</small>')}
+          <div class="prompt zh arrange-prompt">
+            <button class="play" id="play" aria-label="播放整句">${ICON.speaker}</button>
+            <button class="play slow mini" id="slow" aria-label="慢速播放">${ICON.turtle}</button>
+            <span class="p-text">${esc(q.prompt)}</span></div>
           <div class="answer-line" id="ans"></div>
           <div class="bank" id="bank">${q.tiles.map((t, i) => `<button class="tile" data-i="${i}">${esc(t)}</button>`).join('')}</div>`;
         const ans = $('#ans'), bank = $('#bank');
-        const refresh = () => { check.disabled = !ans.children.length; };
+        const refresh = () => { check.disabled = !ans.querySelector('.tile'); };
+        let dwell = null;
+        const word = t => t.textContent.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
+        const sayTile = t => { clearTimeout(dwell); say(word(t)); buzz(8); };
+        const toAnswer = (t, before = null) => {   // 從下方單字區放進句子
+          const c = t.cloneNode(true); c.dataset.from = t.dataset.i; c.classList.remove('used', 'hold');
+          t.classList.add('used'); ans.insertBefore(c, before); return c;
+        };
+        const toBank = c => { bank.querySelector(`[data-i="${c.dataset.from}"]`).classList.remove('used'); c.remove(); };
+        let swallow = false;   // 拖曳結束時不要再當成「點一下」
         bank.onclick = e => {
-          const t = e.target.closest('.tile'); if (!t || answered || t.classList.contains('used')) return;
-          const c = t.cloneNode(true); c.dataset.from = t.dataset.i; t.classList.add('used'); ans.appendChild(c); sfx.tap(); refresh();
+          const t = e.target.closest('.tile'); if (swallow || !t || answered || t.classList.contains('used')) return;
+          toAnswer(t); sayTile(t); sfx.tap(); refresh();
         };
         ans.onclick = e => {
-          const t = e.target.closest('.tile'); if (!t || answered) return;
-          bank.querySelector(`[data-i="${t.dataset.from}"]`).classList.remove('used'); t.remove(); sfx.tap(); refresh();
+          const t = e.target.closest('.tile'); if (swallow || !t || answered) return;
+          toBank(t); sfx.tap(); refresh();
+        };
+        // 電腦滑鼠停在單字上一下，也會唸出來
+        box.addEventListener('pointerover', e => {
+          const t = e.target.closest('.tile'); if (e.pointerType !== 'mouse' || !t || t.classList.contains('used')) return;
+          clearTimeout(dwell); dwell = setTimeout(() => sayTile(t), 350);
+        });
+        box.addEventListener('pointerout', () => clearTimeout(dwell));
+        // 拖曳：按住單字移動，可以放進句子的任何位置，或拖回下方
+        let drag = null;
+        const slotIndex = (x, y) => {
+          drag.slot.remove();   // 用沒有空位的版面來算，位置才不會跳來跳去
+          const items = [...ans.children].filter(el => el !== drag.src);
+          for (const el of items) {
+            const r = el.getBoundingClientRect();
+            if (y < r.top) return el;
+            if (y <= r.bottom && x < r.left + r.width / 2) return el;
+          }
+          return null;
+        };
+        const overAns = (x, y) => { const r = ans.getBoundingClientRect(); return x > r.left - 20 && x < r.right + 20 && y > r.top - 30 && y < r.bottom + 30; };
+        box.addEventListener('pointerdown', e => {
+          const t = e.target.closest('.tile'); if (!t || answered || t.classList.contains('used') || drag) return;
+          drag = { src: t, fromAns: t.parentElement === ans, x0: e.clientX, y0: e.clientY, id: e.pointerId, on: false };
+        });
+        const onMove = e => {
+          if (!drag || e.pointerId !== drag.id) return;
+          if (!drag.on) {
+            if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 8) return;
+            drag.on = true; clearTimeout(dwell);
+            const r = drag.src.getBoundingClientRect();
+            drag.dx = drag.x0 - r.left; drag.dy = drag.y0 - r.top;
+            drag.ghost = drag.src.cloneNode(true); drag.ghost.className = 'tile ghost';
+            document.body.appendChild(drag.ghost);
+            drag.slot = document.createElement('span'); drag.slot.className = 'tile-slot';
+            drag.slot.style.width = `${r.width}px`;
+            drag.src.classList.add('hold');
+            if (drag.fromAns) drag.src.style.display = 'none';
+            sayTile(drag.src);
+          }
+          e.preventDefault();
+          drag.ghost.style.left = `${e.clientX - drag.dx}px`; drag.ghost.style.top = `${e.clientY - drag.dy}px`;
+          drag.lx = e.clientX; drag.ly = e.clientY;
+          if (overAns(e.clientX, e.clientY)) ans.insertBefore(drag.slot, slotIndex(e.clientX, e.clientY));
+          else drag.slot.remove();
+        };
+        const endDrag = e => {
+          if (!drag || (e && e.pointerId !== drag.id)) return;
+          const d = drag; drag = null;
+          if (!d.on) return;
+          swallow = true; setTimeout(() => { swallow = false; }, 50);
+          d.ghost.remove(); d.src.classList.remove('hold');
+          if (answered) { d.slot.remove(); d.src.style.display = ''; return; }
+          // 放開時再對齊一次位置（拖曳中版面會跟著移動）
+          drag = d; if (overAns(d.lx, d.ly)) ans.insertBefore(d.slot, slotIndex(d.lx, d.ly)); else d.slot.remove(); drag = null;
+          d.src.style.display = '';
+          if (d.slot.parentElement === ans) {
+            if (d.fromAns) ans.insertBefore(d.src, d.slot); else toAnswer(d.src, d.slot);
+          } else if (d.fromAns) toBank(d.src);
+          d.slot.remove(); sfx.tap(); refresh();
+        };
+        dragOff && dragOff();
+        window.addEventListener('pointermove', onMove, { passive: false });
+        window.addEventListener('pointerup', endDrag);
+        window.addEventListener('pointercancel', endDrag);
+        dragOff = () => {
+          window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', endDrag); window.removeEventListener('pointercancel', endDrag);
+          if (drag && drag.ghost) drag.ghost.remove(); drag = null;
         };
         check.onclick = () => {
-          const built = [...ans.children].map(c => c.textContent).join(' ');
+          const built = [...ans.querySelectorAll('.tile')].map(c => c.textContent).join(' ');
           grade(q, norm(built) === norm(q.answer), q.answer, ans);
         };
       }
@@ -934,6 +1028,100 @@
   }
 
   // ========== 設定 ==========
+  // ========== 單字學習：聽全部單字／句子，學會了打勾；回報模式下可以標記發音有問題 ==========
+  let soundTab = 'words', reportMode = false;
+  function screenSounds() {
+    const flags = data.flags, learned = data.learned;
+    if (!reportMode && soundTab === 'flags') soundTab = 'words';
+    const itemsOf = (u, tab) => tab === 'words' ? u.words.map(w => ({ k: `w:${u.id}:${w[0]}`, en: w[0], zh: w[1], emo: w[2] }))
+      : u.lines.map(l => ({ k: `s:${u.id}:${l[1]}`, en: l[1], zh: l[2] }));
+    const all = tab => COURSE.flatMap(u => itemsOf(u, tab).map(it => ({ ...it, u })));
+    const nFlag = () => Object.keys(flags).length;
+    const mark = it => reportMode
+      ? `<button class="sr-flag ${flags[it.k] ? 'on' : ''}" aria-label="回報發音有問題">${ICON.flag}</button>`
+      : `<button class="sr-check ${learned[it.k] ? 'on' : ''}" aria-label="已學習">${ICON.check}</button>`;
+    const row = (it, withUnit = false) => `<div class="sr ${learned[it.k] && !reportMode ? 'done' : ''}" data-k="${esc(it.k)}" data-en="${esc(it.en)}" data-u="${it.u.id}">
+        <button class="sr-play" aria-label="播放">${ICON.speaker}</button>
+        <div class="sr-t"><b>${it.emo ? `${it.emo} ` : ''}${esc(it.en)}</b><small>${withUnit ? `第 ${it.u.id} 單元 · ` : ''}${esc(it.zh)}</small></div>
+        ${mark(it)}</div>`;
+    const doneIn = (u, tab) => itemsOf(u, tab).filter(it => learned[it.k]).length;
+    const body = () => {
+      if (soundTab === 'flags') {
+        const list = [...all('words'), ...all('lines')].filter(it => flags[it.k]);
+        return list.length ? `<div class="sb open">${list.map(it => row(it, true)).join('')}</div>`
+          : '<p class="map-note">還沒有回報。聽到發音不對的，按右邊的旗子就會出現在這裡。</p>';
+      }
+      return COURSE.map(u => { const n = itemsOf(u, soundTab).length, d = doneIn(u, soundTab);
+        return `<section class="su" data-u="${u.id}">
+          <div class="su-head"><button class="su-open"><b>第 ${u.id} 單元 · ${esc(u.title)}</b><small class="${d === n ? 'all' : ''}" data-n="${n}">已學 <span>${d}</span>/${n}</small>${ICON.chevron}</button>
+          <button class="su-all" aria-label="依序播放">▶ 全部</button></div>
+          <div class="sb"></div></section>`; }).join('');
+    };
+    const tabs = [['words', '單字'], ['lines', '句子'], ...(reportMode ? [['flags', `已回報 <span id="fc">${nFlag()}</span>`]] : [])];
+    page({ top: navTop('單字學習'),
+      body: `<label class="report-toggle"><span><b>回報模式</b><small>發音聽起來不對時打開，可以標記給 Claude 修正</small></span>
+          <span class="switch"><input type="checkbox" id="rmode" ${reportMode ? 'checked' : ''} aria-label="回報模式"><span></span></span></label>
+        <div class="seg big" id="stab">${tabs.map(([t, l]) => `<button data-t="${t}" class="${soundTab === t ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <p class="map-note">${reportMode
+          ? `點 <span class="mini-ico">${ICON.speaker}</span> 聽發音；不對的按 <span class="mini-ico red">${ICON.flag}</span> 回報，最後按下方按鈕複製清單。`
+          : `點 <span class="mini-ico">${ICON.speaker}</span> 聽發音；學會了就按右邊的 <span class="mini-ico green">${ICON.check}</span> 打勾。`}</p>
+        <div id="slist">${body()}</div>`,
+      bottom: reportMode ? '<button class="btn" id="copy">複製要修正的清單</button>' : '' });
+    onBack(() => screenHome());
+    $('#back').onclick = () => { sfx.tap(); screenHome(); };
+    $('#rmode').onchange = e => { reportMode = e.target.checked; run++; sfx.tap(); screenSounds(); };
+    const list = $('#slist'), copyBtn = $('#copy');
+    const sync = () => {
+      if (!copyBtn) return; const n = nFlag(); const fc = $('#fc'); if (fc) fc.textContent = n;
+      copyBtn.disabled = !n; copyBtn.textContent = n ? `複製要修正的清單（${n} 個）` : '還沒有回報要修正的發音';
+    };
+    sync();
+    let run = 0;   // 依序播放的編號，換畫面或按別的就停止
+    const playRow = (r, onEnd) => {
+      $$('.sr.speaking').forEach(x => x.classList.remove('speaking')); r.classList.add('speaking');
+      loadPack(+r.dataset.u).then(() => say(r.dataset.en, { onEnd: () => { r.classList.remove('speaking'); onEnd && onEnd(); } }));
+    };
+    const fill = sec => {
+      const u = unitById(+sec.dataset.u), sb = sec.querySelector('.sb');
+      if (!sb.innerHTML) sb.innerHTML = itemsOf(u, soundTab).map(it => row({ ...it, u })).join('');
+    };
+    list.onclick = e => {
+      const sec = e.target.closest('.su'), r = e.target.closest('.sr');
+      if (e.target.closest('.su-open')) { fill(sec); sec.classList.toggle('open'); sfx.tap(); loadPack(+sec.dataset.u); return; }
+      if (e.target.closest('.su-all')) {
+        fill(sec); sec.classList.add('open'); const rows = $$('.sr', sec), id = ++run; let i = 0;
+        const step = () => { if (id !== run || i >= rows.length) return; const r = rows[i++]; r.scrollIntoView({ block: 'center', behavior: 'smooth' }); playRow(r, () => setTimeout(step, 500)); };
+        step(); return;
+      }
+      if (e.target.closest('.sr-play')) { run++; playRow(r); return; }
+      if (e.target.closest('.sr-check')) {
+        const k = r.dataset.k; if (learned[k]) delete learned[k]; else learned[k] = 1; save();
+        e.target.closest('.sr-check').classList.toggle('on', !!learned[k]); r.classList.toggle('done', !!learned[k]);
+        if (learned[k]) { sfx.right(); buzz(15); } else sfx.tap();
+        if (sec) { const sm = sec.querySelector('.su-open small'), d = doneIn(unitById(+sec.dataset.u), soundTab);
+          sm.querySelector('span').textContent = d; sm.classList.toggle('all', d === +sm.dataset.n);
+          if (d === +sm.dataset.n && learned[k]) { const rr = sec.getBoundingClientRect(); confetti(24, { x: rr.left + rr.width / 2, y: rr.top + 30 }); } }
+        return;
+      }
+      if (e.target.closest('.sr-flag')) {
+        const k = r.dataset.k; if (flags[k]) delete flags[k]; else flags[k] = 1; save();
+        e.target.closest('.sr-flag').classList.toggle('on', !!flags[k]); buzz(15); sfx.tap(); sync();
+      }
+    };
+    $('#stab').onclick = e => { const b = e.target.closest('button'); if (!b) return; soundTab = b.dataset.t; run++; sfx.tap(); screenSounds(); };
+    if (copyBtn) copyBtn.onclick = async () => {
+      const lines = [...all('words'), ...all('lines')].filter(it => flags[it.k])
+        .map(it => `第 ${it.u.id} 單元・${it.k[0] === 'w' ? '單字' : '句子'}：${it.en}（${it.zh}）`);
+      const text = `要修正的發音（共 ${lines.length} 個）：\n${lines.join('\n')}`;
+      let ok = false;
+      try { await navigator.clipboard.writeText(text); ok = true; } catch (err) {
+        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+        try { ok = document.execCommand('copy'); } catch (e2) { } ta.remove();
+      }
+      toast(ok ? '已複製！可以直接貼給 Claude' : '無法自動複製，請截圖「已回報」頁面');
+    };
+  }
+
   function screenSettings() {
     const s = data.settings;
     const rates = [[0.8, '慢'], [1, '正常'], [1.15, '快']];
@@ -955,7 +1143,7 @@
       <div class="list">
         <div class="item"><div class="label">清除所有資料<small>暱稱與進度都會刪除，回到第一次打開的樣子</small></div><button class="linkish red" id="reset">清除</button></div>
       </div>
-      <div class="foot">簡單學英文 · 第 2 階段預覽版<br>英文發音：開源語音模型 Kokoro＋美式發音字典 · 資料只存在這台裝置的瀏覽器裡</div>` });
+      <div class="foot">浣浣學英文 · 第 2 階段預覽版<br>英文發音：開源語音模型 Kokoro＋美式發音字典 · 資料只存在這台裝置的瀏覽器裡</div>` });
     $('#back').onclick = () => { sfx.tap(); screenHome(); };
     onBack(() => screenHome());
     $('#rename').onclick = () => { sfx.tap(); screenWelcome({ rename: true }); };
@@ -993,6 +1181,12 @@
   music.start();
   const kick = () => { if (!music.on) music.start(); };
   ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, kick, { capture: true, passive: true }));
+
+  // ---------- 手機長按不跳出選單、不選取文字（輸入框除外） ----------
+  const typing = e => e.target.closest && e.target.closest('input, textarea');
+  document.addEventListener('contextmenu', e => { if (!typing(e)) e.preventDefault(); });
+  document.addEventListener('selectstart', e => { if (!typing(e)) e.preventDefault(); });
+  document.addEventListener('dragstart', e => { if (e.target.tagName === 'IMG') e.preventDefault(); });
 
   // ---------- 啟動 ----------
   if (!data.nickname) screenWelcome();
