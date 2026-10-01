@@ -1,5 +1,5 @@
 // 讓 App 開過一次後，沒網路也能打開
-const CACHE = 'hh-english-v19';
+const CACHE = 'hh-english-v22';
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'courses.js', 'bgm.mp3', 'mascot.png', 'mascot-blink.png', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

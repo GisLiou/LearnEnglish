@@ -34,6 +34,7 @@
 
 /* ---------- 基本 ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior: none; }  /* 所有頁面：手機下拉不會重新整理、也不會回彈 */
 html { -webkit-text-size-adjust: 100%; }
 html, body { margin: 0; min-height: 100%; }
 body {
@@ -461,8 +462,6 @@ img { display: block; max-width: 100%; }
 .sr-flag svg { width: 22px; height: 22px; }
 .sr-flag.on { background: var(--red); border-color: var(--red); color: #fff; }
 
-/* 確認離開後（瀏覽器不讓網頁自己關閉時）留下的空白畫面 */
-.screen.bye { min-height: 100dvh; background: var(--bg); }
 
 /* 單字學習：已學習打勾、回報模式 */
 .report-toggle { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 12px 14px; margin-bottom: 12px; cursor: pointer; }
