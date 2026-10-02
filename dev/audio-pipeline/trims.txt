@@ -1,0 +1,14 @@
+# 重複唸的音檔：只保留前 N 秒（對「原始」mp3 做，之後再跑 proc.sh）
+# 用法：while read v f t; do ffmpeg -nostdin -y -i "raw/$f.mp3" -t $t "tmp.mp3" && mv tmp.mp3 "raw/$f.mp3"; done < 只取對應版本的行
+# 版本 檔名 秒數
+slow thank-you@Autonoe 1.7
+natural yes-let-s-fold-it-now@Erinome 3.0
+natural hi-i-want-to-check-in@Autonoe 3.35
+natural let-s-tidy-it-up-together@Autonoe 2.85
+natural do-you-come-here-often@Sadachbia 1.95
+natural oh-thank-you@Autonoe 1.87
+natural also-my-battery-is-low@Sadachbia 2.2
+natural they 1.25
+natural here-you-are-children-are-free@Laomedeia 3.5
+natural yes-he-has-a-baby@Autonoe 3.5
+natural thank-you-you-did-not-have-to-bring-anything@Autonoe 4.25

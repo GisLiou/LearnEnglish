@@ -73,6 +73,7 @@
   }
   let lastLine = null, lineStarted = false, curAudio = null;
   function stopVoice() {
+    stopSeq();
     if (curAudio) { try { curAudio.onended = null; curAudio.pause(); } catch (e) { } curAudio = null; }
     if (hasTTS) try { speechSynthesis.cancel(); } catch (e) { }
     music.duck(false);
@@ -96,10 +97,7 @@
     stopVoice();
     const rate = playRate();
     if (!lang.startsWith('en')) { ttsSay(text, lang, rate, opts.onEnd); return; }
-    // 兩套錄音：自然語速（HH_AUDIO）與教學慢速（HH_AUDIO_SLOW），依設定優先，缺的用另一套補
-    const sets = isSlow() ? [window.HH_AUDIO_SLOW, window.HH_AUDIO] : [window.HH_AUDIO, window.HH_AUDIO_SLOW];
-    const pick = k => { for (const H of sets) if (H && H[k]) return H[k]; };
-    const a = new Audio((opts.voice && pick(`${slug(text)}@${opts.voice}`)) || pick(slug(text)) || `audio/voice/${slug(text)}.mp3`);
+    const a = new Audio(audioSrc(text, opts.voice) || `audio/voice/${slug(text)}.mp3`);
     a.playbackRate = rate; a.preservesPitch = true;
     curAudio = a;
     if (opts.tight) {   // 逐字播放：跳過前後的空白，字和字之間更緊湊
@@ -120,6 +118,54 @@
     a.play().catch(err => { if (err && err.name === 'NotAllowedError') return; fallback(); });
   }
   const say = (text, opts) => speak(text, 'en-US', opts);
+  // 兩套錄音：自然語速（HH_AUDIO）與教學慢速（HH_AUDIO_SLOW），依設定優先，缺的用另一套補
+  function audioSrc(text, voice) {
+    const sets = isSlow() ? [window.HH_AUDIO_SLOW, window.HH_AUDIO] : [window.HH_AUDIO, window.HH_AUDIO_SLOW];
+    const pick = k => { for (const H of sets) if (H && H[k]) return H[k]; };
+    return (voice && pick(`${slug(text)}@${voice}`)) || pick(slug(text));
+  }
+  // 無縫連續播放多個單字（「聽我排的」）：用 Web Audio 解碼，切掉每個字前後的靜音，再一個接一個精準排程
+  const SEQ_GAP = -0.02;   // 字與字之間的間隔（秒）；負數＝前一個字的尾音和下一個字稍微重疊，聽起來更連貫
+  const bufCache = {};
+  let seqNodes = [], seqTimers = [];
+  function stopSeq() {
+    seqNodes.forEach(n => { try { n.stop(); } catch (e) { } }); seqNodes = [];
+    seqTimers.forEach(clearTimeout); seqTimers = [];
+  }
+  function decodeWord(src) {
+    if (!bufCache[src]) bufCache[src] = fetch(src).then(r => r.arrayBuffer())
+      .then(b => new Promise((ok, no) => ctx().decodeAudioData(b, ok, no)))
+      .then(buf => {
+        const d = buf.getChannelData(0), sr = buf.sampleRate; let peak = 0;
+        for (let i = 0; i < d.length; i++) { const v = Math.abs(d[i]); if (v > peak) peak = v; }
+        let a = 0, z = d.length - 1;   // 開頭用較低門檻（保留輕的子音），結尾門檻稍高（去掉拖長的尾音）
+        while (a < d.length && Math.abs(d[a]) < peak * 0.02) a++;
+        while (z > a && Math.abs(d[z]) < peak * 0.04) z--;
+        return { buf, start: Math.max(0, a / sr - 0.015), end: Math.min(buf.duration, z / sr + 0.02) };
+      });
+    return bufCache[src];
+  }
+  // 回傳 false 代表不能用無縫播放（例如缺錄音），呼叫端改用一般逐字播放
+  function playSeq(texts, { onWord, onDone, fallback } = {}) {
+    if (!data.settings.voice) return false;
+    const srcs = texts.map(t => audioSrc(t)), ac = ctx();
+    if (!ac || !srcs.length || srcs.some(x => !x)) return false;
+    stopVoice(); lastLine = null;
+    Promise.all(srcs.map(decodeWord)).then(items => {
+      let t = ac.currentTime + 0.05; music.duck(true);
+      items.forEach((it, i) => {
+        const dur = it.end - it.start, src = ac.createBufferSource(), g = ac.createGain();
+        src.buffer = it.buf;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.008);
+        g.gain.setValueAtTime(1, t + dur - 0.015); g.gain.linearRampToValueAtTime(0, t + dur);
+        src.connect(g); g.connect(ac.destination); src.start(t, it.start, dur); seqNodes.push(src);
+        seqTimers.push(setTimeout(() => onWord && onWord(i), Math.max(0, (t - ac.currentTime) * 1000)));
+        t += dur + SEQ_GAP;
+      });
+      seqTimers.push(setTimeout(() => { seqNodes = []; music.duck(false); onDone && onDone(); }, Math.max(0, (t - ac.currentTime) * 1000)));
+    }).catch(() => { fallback && fallback(); });
+    return true;
+  }
   // 語速：設定頁和上課畫面右上角都可以調。兩種都是原始錄音、不做變速（變速會讓音質變差）
   //   很慢（0.85）＝教學慢速錄音 audio/packs-slow；正常（1）＝自然語速錄音 audio/packs
   // NATURAL_READY：自然語速版錄好並放進 audio/packs 後改成 true，才開放切換
@@ -993,12 +1039,19 @@
         let seq = 0;
         $('#playAns').onclick = () => {
           const tiles = [...ans.querySelectorAll('.tile')], id = ++seq; let i = 0;
+          const clear = () => $$('.tile.speaking', ans).forEach(t => t.classList.remove('speaking'));
           const step = () => {
             $$('.tile.speaking', ans).forEach(t => t.classList.remove('speaking'));
             if (id !== seq || i >= tiles.length) return;
             const t = tiles[i++]; t.classList.add('speaking'); say(word(t), { tight: true, onEnd: () => setTimeout(step, 40) });
           };
-          step();
+          // 優先用無縫播放；缺錄音或解碼失敗時才退回一個一個播
+          const ok = playSeq(tiles.map(word), {
+            onWord: k => { if (id !== seq) return; clear(); tiles[k].classList.add('speaking'); },
+            onDone: () => { if (id === seq) clear(); },
+            fallback: () => { if (id === seq) step(); }
+          });
+          if (!ok) step();
         };
         let dwell = null;
         const word = t => t.textContent.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
