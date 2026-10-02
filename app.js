@@ -17,6 +17,8 @@
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* 無法保存時仍可使用 */ } }
   let data = load();
+  // 舊版的語速（0.8）換成最接近的新選項
+  { const R = [0.7, 0.85, 1, 1.15]; if (!R.includes(data.settings.rate)) data.settings.rate = R.reduce((b, r) => Math.abs(r - data.settings.rate) < Math.abs(b - data.settings.rate) ? r : b, 1); }
 
   // ---------- 深淺模式（預設深色） ----------
   function applyTheme() {
@@ -97,14 +99,36 @@
     const a = new Audio((opts.voice && H[`${slug(text)}@${opts.voice}`]) || H[slug(text)] || `audio/voice/${slug(text)}.mp3`);
     a.playbackRate = rate; a.preservesPitch = true;
     curAudio = a;
+    if (opts.tight) {   // 逐字播放：跳過前後的空白，字和字之間更緊湊
+      a.addEventListener('loadedmetadata', () => { try { a.currentTime = 0.09; } catch (e) { } }, { once: true });
+      const watch = () => {
+        if (curAudio !== a) return;
+        if (a.duration && a.currentTime >= a.duration - 0.1) { a.pause(); a.onended && a.onended(); return; }
+        requestAnimationFrame(watch);
+      };
+      a.addEventListener('playing', () => requestAnimationFrame(watch), { once: true });
+    }
     let fellBack = false;
     const fallback = () => { if (fellBack || curAudio !== a) return; fellBack = true; curAudio = null; ttsSay(text, 'en-US', rate, opts.onEnd); };
     a.onplaying = () => { lineStarted = true; music.duck(true); };
-    a.onended = () => { if (curAudio === a) curAudio = null; music.duck(false); opts.onEnd && opts.onEnd(); };
+    let ended = false;
+    a.onended = () => { if (ended) return; ended = true; if (curAudio === a) curAudio = null; music.duck(false); opts.onEnd && opts.onEnd(); };
     a.onerror = fallback;
     a.play().catch(err => { if (err && err.name === 'NotAllowedError') return; fallback(); });
   }
   const say = (text, opts) => speak(text, 'en-US', opts);
+  // 語速：設定頁和上課畫面右上角都可以調
+  const RATES = [[0.7, '很慢'], [0.85, '慢'], [1, '正常'], [1.15, '快']];
+  const rateName = () => (RATES.find(r => Math.abs(r[0] - data.settings.rate) < 0.01) || RATES[2])[1];
+  const speedChip = () => `<button class="speed-chip" aria-label="調整英文語速">語速 <span>${rateName()}</span></button>`;
+  const RATE_CYCLE = [1, 0.85, 0.7, 1.15];   // 按一下：正常 → 慢 → 很慢 → 快 → 正常
+  document.addEventListener('click', e => {
+    const c = e.target.closest('.speed-chip'); if (!c) return;
+    const i = RATE_CYCLE.findIndex(r => Math.abs(r - data.settings.rate) < 0.01);
+    data.settings.rate = RATE_CYCLE[(i + 1) % RATE_CYCLE.length]; save(); sfx.tap();
+    $$('.speed-chip span').forEach(s => { s.textContent = rateName(); });
+    toast(`英文語速：${rateName()}`);
+  });
   // 每個單元的英文發音打包成一個檔案（audio/packs/unit-XX.js），需要時才載入
   const packs = {};
   function loadPack(uid) {
@@ -696,7 +720,7 @@
     return `<div class="lprog" aria-label="上課進度">${[1, 2, 3].map(i => i < n ? '<i class="done"></i>' : i > n ? '<i></i>' : quiz ? '<i class="fill"><b id="bar"></b></i>' : '<i class="on"></i>').join('')}</div>`;
   }
   function lessonTop(n) {
-    return `${quitPill()}${steps(n)}<small class="lstep">${['看對話', '學單字', '練習'][n - 1]}</small>`;
+    return `${quitPill()}${steps(n)}${speedChip()}`;
   }
   function bindQuit(text = '這一課的進度不會保存喔。', onOk = screenHome) {
     const ask = () => modal({ title: '確定要離開這一課嗎？', text, ok: '離開', cancel: '繼續學習', danger: true, onOk });
@@ -708,13 +732,49 @@
     : `<span class="face">${u.npc.face}</span>`;
   const nameOf = (who, u) => who === 'A' ? '浣浣' : u.npc.name;
 
+  // 英文句子：每個字包成 .wd（逐字播放時會亮起來），重點單字是可以點的 .kw
   function highlight(en, u) {
-    const words = near(u), re = keywordRegex(words);
-    return esc(en).replace(re, m => {
-      const w = words.find(x => x.en.toLowerCase() === m.toLowerCase());
-      return `<button class="kw" data-en="${esc(w.en)}" data-zh="${esc(w.zh)}" data-emo="${w.emo}">${m}</button>`;
-    });
+    const words = near(u), re = keywordRegex(words), kws = [];
+    for (const m of en.matchAll(re)) kws.push({ a: m.index, b: m.index + m[0].length, w: words.find(x => x.en.toLowerCase() === m[0].toLowerCase()) });
+    let out = '', i = 0;
+    const wdRe = /[A-Za-z0-9'’-]+/g;
+    const piece = (from, to) => { let h = '', j = from; for (const m of en.slice(from, to).matchAll(wdRe)) { h += esc(en.slice(j, from + m.index)) + `<span class="wd">${esc(m[0])}</span>`; j = from + m.index + m[0].length; } return h + esc(en.slice(j, to)); };
+    for (const k of kws) {
+      out += piece(i, k.a) + `<span class="kw" role="button" tabindex="0" data-en="${esc(k.w.en)}" data-zh="${esc(k.w.zh)}" data-emo="${k.w.emo}">${piece(k.a, k.b)}</span>`;
+      i = k.b;
+    }
+    return out + piece(i, en.length);
   }
+  // 中文句子：把重點單字對應的中文也畫上底線（點了一樣會唸英文）
+  function highlightZh(l, u) {
+    const words = near(u), zh = l[2], marks = [];
+    for (const w of words) {
+      if (!keywordRegex([w]).test(l[1])) continue;
+      let frag = (window.ZH_MARK || {})[`${u.id}|${w.en}|${zh}`];
+      if (!frag) frag = w.zh.split(/[；（）]/).map(x => x.replace(/的$/, '')).filter(Boolean).sort((a, b) => b.length - a.length).find(x => zh.includes(x));
+      if (!frag) continue;
+      let at = zh.indexOf(frag);
+      while (at >= 0 && marks.some(m => at < m.b && at + frag.length > m.a)) at = zh.indexOf(frag, at + 1);
+      if (at >= 0) marks.push({ a: at, b: at + frag.length, w });
+    }
+    marks.sort((x, y) => x.a - y.a);
+    let out = '', i = 0;
+    for (const m of marks) { out += esc(zh.slice(i, m.a)) + `<span class="kw kz" role="button" tabindex="0" data-en="${esc(m.w.en)}" data-zh="${esc(m.w.zh)}" data-emo="${m.w.emo}">${esc(zh.slice(m.a, m.b))}</span>`; i = m.b; }
+    return out + esc(zh.slice(i));
+  }
+  // 逐字唸：一個字一個字播放，並讓那個字亮起來
+  let wordRun = 0;
+  function playWords(box, onDone) {
+    const wds = $$('.wd', box), id = ++wordRun; let i = 0;
+    const step = () => {
+      $$('.wd.on').forEach(x => x.classList.remove('on'));
+      if (id !== wordRun || i >= wds.length) { onDone && onDone(); return; }
+      const w = wds[i++]; w.classList.add('on');
+      say(w.textContent, { tight: true, onEnd: () => setTimeout(step, 40) });
+    };
+    step();
+  }
+  const lineTools = (id = '') => `<div class="line-tools"><button class="tool-btn lt-play"${id ? ` id="${id}"` : ''} aria-label="播放整句">${ICON.speaker}<span>整句</span></button><button class="tool-btn lt-words" aria-label="一個字一個字聽">${ICON.list}<span>逐字</span></button></div>`;
   // 點重點單字：唸出來＋跳出中文小卡
   function bindKeywords(root) {
     root.addEventListener('click', e => {
@@ -753,9 +813,10 @@
       const l = u.lines[shown], el = document.createElement('div');
       el.className = `msg ${l[0] === 'A' ? 'me' : 'them'}`;
       el.innerHTML = `${face(l[0], u)}<div class="msg-body"><small>${esc(nameOf(l[0], u))}</small>
-        <div class="msg-bubble"><p class="en">${highlight(l[1], u)}</p><p class="zh">${esc(l[2])}</p>
-        <button class="line-play" aria-label="再聽一次">${ICON.speaker}</button></div></div>`;
-      el.querySelector('.line-play').onclick = () => { playLine(el, l[1], null, voiceOf(l[0], u)); };
+        <div class="msg-bubble"><p class="en">${highlight(l[1], u)}</p><p class="zh">${highlightZh(l, u)}</p>
+        ${lineTools()}</div></div>`;
+      el.querySelector('.lt-play').onclick = () => { wordRun++; playLine(el, l[1], null, voiceOf(l[0], u)); };
+      el.querySelector('.lt-words').onclick = () => { stopVoice(); $$('.msg.speaking').forEach(x => x.classList.remove('speaking')); el.classList.add('speaking'); playWords(el.querySelector('.en'), () => el.classList.remove('speaking')); };
       chat.appendChild(el); sfx.pop();
       setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
       playLine(el, l[1], null, voiceOf(l[0], u));
@@ -804,15 +865,16 @@
           <div class="wemo">${w.emo}</div>
           <button class="play big-word" id="pw" aria-label="播放">${ICON.speaker}<span>${esc(w.en)}</span></button>
           <div class="wzh">${esc(w.zh)}</div>
-          ${ex ? `<div class="wex"><p class="en">${highlight(ex[1], u)}</p><p class="zh">${esc(ex[2])}</p>
-            <button class="line-play" id="pl" aria-label="播放例句">${ICON.speaker}</button></div>` : ''}
+          ${ex ? `<div class="wex"><p class="en">${highlight(ex[1], u)}</p><p class="zh">${highlightZh(ex, u)}</p>
+            ${lineTools('pl')}</div>` : ''}
         </div>`;
       $$('#dots i').forEach((d, j) => { d.className = j < i ? 'done' : j === i ? 'on' : ''; });
       $('#prev').disabled = i === 0;
       $('#nextc').textContent = i === u.words.length - 1 ? '開始練習' : `下一個（${i + 1}/${u.words.length}）`;
       $('#nextc').classList.toggle('green', i === u.words.length - 1);
       $('#pw').onclick = () => { say(w.en); buzz(10); };
-      const pl = $('#pl'); if (pl) pl.onclick = () => say(ex[1], { voice: voiceOf(ex[0], u) });
+      const pl = $('#pl'); if (pl) pl.onclick = () => { wordRun++; say(ex[1], { voice: voiceOf(ex[0], u) }); };
+      const pw = $('.wex .lt-words'); if (pw) pw.onclick = () => playWords($('.wex .en'));
       sfx.pop(); setTimeout(() => say(w.en), 250);
     };
     $('#prev').onclick = () => { if (i > 0) { i--; render(); } };
@@ -849,7 +911,7 @@
 
     page({ cls: 'wide', footId: 'foot',
       top: `${quitPill()}${placement ? '<div class="lprog"><i class="fill"><b id="bar"></b></i></div>' : steps(3, true)}
-        <small class="lstep" id="count"></small><span class="combo" id="combo"></span>`,
+        <small class="lstep" id="count"></small>${speedChip()}<span class="combo" id="combo"></span>`,
       body: `<div class="lesson-title">${esc(title)}</div><div class="q" id="q"></div>`,
       bottom: '<button class="btn" id="check" disabled>檢查</button>' });
     music.start();
@@ -874,7 +936,6 @@
       const box = $('#q');
       box.classList.remove('in'); void box.offsetWidth; box.classList.add('in');
       // 排句子題：下方按鈕列多一個「聽我排的」，不佔用題目區的空間
-      if (q.type === 'arrange') $('#foot').innerHTML = `<div class="row2 arr-foot"><button class="btn ghost" id="playAns" disabled>${ICON.speaker}<span>聽我排的</span></button><button class="btn" id="check" disabled>檢查</button></div>`;
       const check = $('#check');
       let chosen = null;
       const play = (slow) => q.audio && say(q.audio, { slow, voice: q.voice });
@@ -903,10 +964,10 @@
             <span class="p-text">${esc(q.prompt)}</span>
             <button class="play" id="play" aria-label="播放整句">${ICON.speaker}</button>
             <button class="play slow mini" id="slow" aria-label="慢速播放">${ICON.turtle}</button></div>
-          <div class="answer-line" id="ans"></div>
+          <div class="answer-line" id="ans"><button class="ans-play" id="playAns" disabled aria-label="聽我排的句子">${ICON.speaker}<span>聽我排的</span></button></div>
           <div class="bank" id="bank">${q.tiles.map((t, i) => `<button class="tile" data-i="${i}">${esc(t)}</button>`).join('')}</div>`;
-        const ans = $('#ans'), bank = $('#bank');
-        const refresh = () => { const has = !!ans.querySelector('.tile'); check.disabled = !has; $('#playAns').disabled = !has; };
+        const ans = $('#ans'), bank = $('#bank'), playBtn = $('#playAns');   // 「聽我排的」永遠在句子最後面
+        const refresh = () => { const has = !!ans.querySelector('.tile'); check.disabled = !has; playBtn.disabled = !has; };
         // 依序唸出目前排好的單字，方便和整句發音比較
         let seq = 0;
         $('#playAns').onclick = () => {
@@ -914,7 +975,7 @@
           const step = () => {
             $$('.tile.speaking', ans).forEach(t => t.classList.remove('speaking'));
             if (id !== seq || i >= tiles.length) return;
-            const t = tiles[i++]; t.classList.add('speaking'); say(word(t), { onEnd: () => setTimeout(step, 120) });
+            const t = tiles[i++]; t.classList.add('speaking'); say(word(t), { tight: true, onEnd: () => setTimeout(step, 40) });
           };
           step();
         };
@@ -923,7 +984,7 @@
         const sayTile = t => { clearTimeout(dwell); say(word(t)); buzz(8); };
         const toAnswer = (t, before = null) => {   // 從下方單字區放進句子
           const c = t.cloneNode(true); c.dataset.from = t.dataset.i; c.classList.remove('used', 'hold');
-          t.classList.add('used'); ans.insertBefore(c, before); return c;
+          t.classList.add('used'); ans.insertBefore(c, before || playBtn); return c;
         };
         const toBank = c => { bank.querySelector(`[data-i="${c.dataset.from}"]`).classList.remove('used'); c.remove(); };
         let swallow = false;   // 拖曳結束時不要再當成「點一下」
@@ -951,7 +1012,7 @@
             if (y < r.top) return el;
             if (y <= r.bottom && x < r.left + r.width / 2) return el;
           }
-          return null;
+          return playBtn;
         };
         const overAns = (x, y) => { const r = ans.getBoundingClientRect(); return x > r.left - 20 && x < r.right + 20 && y > r.top - 30 && y < r.bottom + 30; };
         box.addEventListener('pointerdown', e => {
@@ -1058,9 +1119,13 @@
       const msg = placement ? (ok ? '答對了！' : '沒關係，繼續下一題')
         : (ok ? pick(PRAISE) : pick(COMFORT)).replaceAll('{name}', data.nickname || '');
       foot.className = `bar-bottom ${ok ? 'good' : 'bad'}`;
+      // 回饋區可以再聽一次正確的英文
+      const hear = q.speakAfter || q.audio || (q.optLang === 'en' ? q.answer : null), hearV = q.afterVoice || q.voice;
       foot.innerHTML = `<div class="fb"><img src="mascot.png" alt="" class="fb-mascot ${ok ? 'hop' : 'sway'}">
-          <div><b>${ok ? '✓ ' : ''}${esc(msg)}</b>${!ok && answer && !placement ? `<p>正確答案：<span>${esc(answer)}</span></p>` : ''}</div></div>
+          <div class="fb-t"><b>${ok ? '✓ ' : ''}${esc(msg)}</b>${!ok && answer && !placement ? `<p>正確答案：<span>${esc(answer)}</span></p>` : ''}</div>
+          ${hear && !placement ? `<button class="fb-play" id="fbPlay" aria-label="再聽一次">${ICON.speaker}</button>` : ''}</div>
         <button class="btn ${ok ? 'green' : ''}" id="cont">繼續</button>`;
+      const fp = $('#fbPlay'); if (fp) fp.onclick = () => say(hear, { voice: hearV });
       $('#cont').onclick = () => { sfx.tap(); stopVoice(); next(); };
     }
 
@@ -1214,7 +1279,7 @@
   function screenSettings() {
     remember({ s: 'settings' });
     const s = data.settings;
-    const rates = [[0.8, '慢'], [1, '正常'], [1.15, '快']];
+    const rates = RATES;
     page({ top: navTop('設定'), body: `<div class="list">
         <div class="item"><div class="label">暱稱<small>浣浣會這樣叫你</small></div><span class="value">${name()}</span><button class="linkish" id="rename">修改</button></div>
         <div class="item"><div class="label">重新測驗程度<small>目前每日課程在第 ${Math.min(data.dailyNext, COURSE.length)} 單元</small></div><button class="linkish" id="retest">測驗</button></div>
@@ -1224,7 +1289,7 @@
       </div>
       <div class="list">
         <div class="item"><div class="label">聲音<small>英文發音與浣浣說話</small></div><label class="switch"><input type="checkbox" id="voice" ${s.voice ? 'checked' : ''} aria-label="聲音"><span></span></label></div>
-        <div class="item"><div class="label">朗讀速度</div><div class="seg" id="rate">${rates.map(([r, l]) => `<button data-r="${r}" class="${s.rate === r ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+        <div class="item stack"><div class="label">英文語速<small>上課時也可以按右上角的「語速」切換</small></div><div class="seg" id="rate">${rates.map(([r, l]) => `<button data-r="${r}" class="${s.rate === r ? 'on' : ''}">${l}</button>`).join('')}</div></div>
         <div class="item"><div class="label">試聽英文發音</div><button class="linkish" id="test">播放範例</button></div>
         <div class="item"><div class="label">音效<small>答對、按鈕的提示音</small></div><label class="switch"><input type="checkbox" id="sfx" ${s.sfx ? 'checked' : ''} aria-label="音效"><span></span></label></div>
         <div class="item"><div class="label">背景音樂<small>使用 App 時的輕柔音樂</small></div><label class="switch"><input type="checkbox" id="music" ${s.music ? 'checked' : ''} aria-label="背景音樂"><span></span></label></div>
