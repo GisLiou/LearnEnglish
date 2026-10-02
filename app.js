@@ -123,7 +123,7 @@
   // 語速：設定頁和上課畫面右上角都可以調。兩種都是原始錄音、不做變速（變速會讓音質變差）
   //   很慢（0.85）＝教學慢速錄音 audio/packs-slow；正常（1）＝自然語速錄音 audio/packs
   // NATURAL_READY：自然語速版錄好並放進 audio/packs 後改成 true，才開放切換
-  const NATURAL_READY = false;
+  const NATURAL_READY = true;
   const RATES = [[0.85, '很慢'], [1, '正常']];
   const curRate = () => NATURAL_READY ? data.settings.rate : 0.85;
   const isSlow = () => curRate() < 1;

@@ -20,7 +20,7 @@
   - 不要自動操作 Google 的示範網頁，也不要繞過機器人驗證。
 - **.gitignore 排除的資料夾**：`Claude outputs/`、`app/`、`tools/`、`site/`、`tts-out/`、`tts-out2/`。所以 `tools/` 不會上傳 GitHub，但它是重要的工作檔。
 - **雲端工作區**：Agent 若在雲端工作，會在 `/home/claude/site` 放一份副本，改完再寫回 D:\LearnEnglish。寫回後要把檔案重新讀回來比對內容，確認一致。
-- **發佈前**：任何會改變行為的修改都要提高 `sw.js` 的 `CACHE` 版本號（目前是 `hh-english-v31`）。
+- **發佈前**：任何會改變行為的修改都要提高 `sw.js` 的 `CACHE` 版本號（目前是 `hh-english-v32`）。
 
 ## 3. 檔案結構
 
@@ -32,9 +32,9 @@
 | `style.css` | 樣式，有深色和淺色主題 |
 | `sw.js` | Service Worker，網路優先（network-first）。改版時提高 CACHE 版本號 |
 | `manifest.webmanifest`、`icon-*.png` | PWA 名稱「浣浣學英文」和圖示（滿版底色，可當 maskable 圖示） |
-| `audio/packs/unit-XX.js` | **自然語速**英文錄音：`window.HH_AUDIO`，內容是 base64 data URI。目前只是空殼，見第 6 節 |
+| `audio/packs/unit-XX.js` | **自然語速**英文錄音：`window.HH_AUDIO`，內容是 base64 data URI，已完成，共 1,261 個 |
 | `audio/packs-slow/unit-XX.js` | **教學慢速**英文錄音：`window.HH_AUDIO_SLOW`，已完成，共 1,261 個 |
-| `audio/zh/` | 浣浣的中文台詞錄音 `<代號>.mp3`；`index.js` 的 `window.HH_ZH` 列出已錄好的代號；README.md 是台詞清單 |
+| `audio/zh/` | 浣浣的中文台詞錄音 `<代號>.mp3`，13 句已用 Gemini-TTS 產生（Autonoe、cmn-TW、自然語速）；`index.js` 的 `window.HH_ZH` 列出已錄好的代號；README.md 是台詞清單 |
 | `bgm.mp3`、`mascot*.png` | 背景音樂、浣浣圖片 |
 | `dev/audio-pipeline/` | 語音處理腳本：解開、檢查、後處理、打包。看那裡的 README |
 | `tools/`（不上傳 GitHub） | `tts-studio.html` 批次產生 Google 語音的網頁工具；`mkjobs.js` 產生 `tts-jobs.js` 工作清單；`tts-redo.js` 是重做名單 |
@@ -81,11 +81,11 @@
   - 英文：先找 `slug@voice`，再找 `slug`，從目前語速對應的錄音包找，找不到再用另一包補。都沒有就試 `audio/voice/*.mp3`，最後才用瀏覽器內建語音。
   - `tight` 用於逐字播放：開頭跳過 0.04 秒、結尾提早 0.06 秒，讓字與字之間更緊湊。
   - 中文：`sayZh(ids, fallback)`。已錄好的就播 `audio/zh/<id>.mp3`，否則用瀏覽器語音。中文永遠用正常速度，不受英文語速設定影響。
-- **語速**（重要，2026-10 的狀態）：
+- **語速**：
   - 只有兩段：`很慢`（0.85）播教學慢速錄音，`正常`（1）播自然語速錄音。兩種都用原始錄音，播放速度固定為 1 倍，不做任何變速。
-  - `NATURAL_READY = false`：切換功能先鎖住。設定頁的按鈕是 disabled，上課畫面右上角的語速按鈕按下只會顯示提示，實際一律播放「很慢」。
-  - 預設是很慢。`settings.rateVer = 2` 時，會把所有人的語速先重設為很慢。
-  - 錄音包需要時才載入（`loadPack(uid)`）。先載入目前語速對應的那一包；如果那一包裡找不到該單元第一個單字，就再載入另一包。
+  - `NATURAL_READY = true`：已開放切換。設定頁可以選，上課畫面右上角的語速按鈕按一下就會在兩段之間切換。
+  - 預設是很慢。`settings.rateVer = 2` 時，會把所有人的語速先重設為很慢一次。
+  - 錄音包需要時才載入（`loadPack(uid)`）。先載入目前語速對應的那一包；如果那一包裡找不到該單元第一個單字，就再載入另一包；切換語速時會重新載入。
 - **返回鍵與離開**：
   - 支援 CloseWatcher 的瀏覽器用 CloseWatcher，不用 pushState，這樣 `window.close()` 才能真的關閉。其他瀏覽器用 pushState。
   - 確認離開後直接關閉頁面（`leaveApp`）。
@@ -95,15 +95,13 @@
   - 停用長按複製（擋 contextmenu、selectstart）。
   - 關鍵詞底線：`highlight()` 處理英文，`highlightZh()` 處理中文，中文字和英文同樣大小。
 
-## 6. 待辦事項（交接時的狀態）
+## 6. 目前狀態與待辦事項
 
-1. **自然語速英文錄音（第二版），加上浣浣中文 13 句**。使用者還沒錄。
-   - 怎麼錄：用 `tools/tts-studio.html` 輸出到 `D:\LearnEnglish\tts-out2`。共 1,274 個：英文 1,261 個，加中文 13 個（檔名 `zh-*.mp3`，語言代碼 cmn-TW）。
-   - 錄好後的處理：依照 `dev/audio-pipeline/README.md` 解開 → 檢查（必要時產生重做名單）→ 後處理 → `build_packs.js` 輸出到 `audio/packs`（HH_AUDIO）→ `build_zh.js`。
-   - 然後把 app.js 的 `NATURAL_READY` 改成 `true`，提高 sw.js 版本號。
-   - 開放後，使用者希望「很慢」和「正常」可以互相切換。是否要把預設改成「正常」，要先問使用者。
-2. **改 tools/ 之前要先問使用者**：使用者曾明確要求「不要動到 tools」。
-3. **可以考慮**：把 Google 存取權杖（每小時就會過期）改成綁定服務帳戶的 API 金鑰。只提供做法，不碰金鑰。
+- 2026-10：自然語速版（1,261 個）和浣浣中文（13 句）都已整合。自然語速版有 10 句被 Gemini 唸了兩次，已用 ffmpeg 只保留第一次（用 check.py 加上分段比對找出來的）。
+- 原始音檔在使用者電腦：教學慢速版在 `D:\LearnEnglish\tts-out`，自然語速版在 `tts-out2`。
+- 要改 tools/ 之前先問使用者：使用者曾明確要求不要動 tools。
+- 可以考慮：把 Google 存取權杖（每小時就會過期）改成綁定服務帳戶的 API 金鑰。只提供做法，不碰金鑰。
+- 預設語速要不要改成「正常」，由使用者決定。
 
 ## 7. 曾經踩過的坑
 
