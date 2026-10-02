@@ -533,3 +533,11 @@ img { -webkit-user-drag: none; user-select: none; }
 .item.stack .label { flex-basis: 100%; }
 .item.stack .seg { width: 100%; }
 .item.stack .seg button { flex: 1; }
+
+/* 對話第三個角色：泡泡用淡綠色區分 */
+.msg.c2 .msg-bubble { background: var(--green-soft); border-color: transparent; }
+
+/* 語速切換尚未開放（自然語速版準備中） */
+.seg button:disabled { cursor: not-allowed; }
+.seg button:disabled:not(.on) { opacity: .45; }
+.speed-chip.locked { opacity: .75; }

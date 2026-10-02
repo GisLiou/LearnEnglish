@@ -7,7 +7,7 @@
   const DEFAULTS = {
     nickname: null, streak: 0, xp: 0, lastDay: null, days: [],
     placed: false, dailyNext: 1, done: {}, best: {}, flags: {}, learned: {}, flagsVer: 2,
-    settings: { voice: true, sfx: true, rate: 1, theme: 'dark', music: true, vibrate: true }
+    settings: { voice: true, sfx: true, rate: 0.85, theme: 'dark', music: true, vibrate: true }
   };
   function load() {
     try {
@@ -17,8 +17,9 @@
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* 無法保存時仍可使用 */ } }
   let data = load();
-  // 舊版的語速（0.8）換成最接近的新選項
-  { const R = [0.7, 0.85, 1, 1.15]; if (!R.includes(data.settings.rate)) data.settings.rate = R.reduce((b, r) => Math.abs(r - data.settings.rate) < Math.abs(b - data.settings.rate) ? r : b, 1); }
+  // 語速只有兩種：0.85＝很慢（教學慢速錄音），1＝正常（自然語速錄音）；舊版的其他數值換成最接近的
+  data.settings.rate = data.settings.rate >= 1 ? 1 : 0.85;
+  if (data.settings.rateVer !== 2) { data.settings.rate = 0.85; data.settings.rateVer = 2; }   // 改成兩段語速時，所有人先預選「很慢」
 
   // ---------- 深淺模式（預設深色） ----------
   function applyTheme() {
@@ -88,22 +89,24 @@
     } catch (e) { onEnd && onEnd(); }
   }
   const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  // 說一句話：英文播預錄音檔（開源 Kokoro＋發音字典錄製）；中文用瀏覽器內建聲音
+  // 說一句話：英文播預錄音檔（Google Gemini-TTS）；中文用瀏覽器內建聲音
   function speak(text, lang = 'zh-TW', opts = {}) {
     lastLine = { text, lang, opts }; lineStarted = false;
     if (!data.settings.voice) { opts.onEnd && setTimeout(opts.onEnd, 300); return; }
     stopVoice();
-    const rate = (opts.slow ? 0.7 : 1) * data.settings.rate;
+    const rate = playRate();
     if (!lang.startsWith('en')) { ttsSay(text, lang, rate, opts.onEnd); return; }
-    const H = window.HH_AUDIO || {};   // 對話句子依角色有不同聲音：key 為「句子@kid／f／m」
-    const a = new Audio((opts.voice && H[`${slug(text)}@${opts.voice}`]) || H[slug(text)] || `audio/voice/${slug(text)}.mp3`);
+    // 兩套錄音：自然語速（HH_AUDIO）與教學慢速（HH_AUDIO_SLOW），依設定優先，缺的用另一套補
+    const sets = isSlow() ? [window.HH_AUDIO_SLOW, window.HH_AUDIO] : [window.HH_AUDIO, window.HH_AUDIO_SLOW];
+    const pick = k => { for (const H of sets) if (H && H[k]) return H[k]; };
+    const a = new Audio((opts.voice && pick(`${slug(text)}@${opts.voice}`)) || pick(slug(text)) || `audio/voice/${slug(text)}.mp3`);
     a.playbackRate = rate; a.preservesPitch = true;
     curAudio = a;
     if (opts.tight) {   // 逐字播放：跳過前後的空白，字和字之間更緊湊
-      a.addEventListener('loadedmetadata', () => { try { a.currentTime = 0.09; } catch (e) { } }, { once: true });
+      a.addEventListener('loadedmetadata', () => { try { a.currentTime = 0.04; } catch (e) { } }, { once: true });
       const watch = () => {
         if (curAudio !== a) return;
-        if (a.duration && a.currentTime >= a.duration - 0.1) { a.pause(); a.onended && a.onended(); return; }
+        if (a.duration && a.currentTime >= a.duration - 0.06) { a.pause(); a.onended && a.onended(); return; }
         requestAnimationFrame(watch);
       };
       a.addEventListener('playing', () => requestAnimationFrame(watch), { once: true });
@@ -117,29 +120,45 @@
     a.play().catch(err => { if (err && err.name === 'NotAllowedError') return; fallback(); });
   }
   const say = (text, opts) => speak(text, 'en-US', opts);
-  // 語速：設定頁和上課畫面右上角都可以調
-  const RATES = [[0.7, '很慢'], [0.85, '慢'], [1, '正常'], [1.15, '快']];
-  const rateName = () => (RATES.find(r => Math.abs(r[0] - data.settings.rate) < 0.01) || RATES[2])[1];
-  const speedChip = () => `<button class="speed-chip" aria-label="調整英文語速">語速 <span>${rateName()}</span></button>`;
-  const RATE_CYCLE = [1, 0.85, 0.7, 1.15];   // 按一下：正常 → 慢 → 很慢 → 快 → 正常
+  // 語速：設定頁和上課畫面右上角都可以調。兩種都是原始錄音、不做變速（變速會讓音質變差）
+  //   很慢（0.85）＝教學慢速錄音 audio/packs-slow；正常（1）＝自然語速錄音 audio/packs
+  // NATURAL_READY：自然語速版錄好並放進 audio/packs 後改成 true，才開放切換
+  const NATURAL_READY = false;
+  const RATES = [[0.85, '很慢'], [1, '正常']];
+  const curRate = () => NATURAL_READY ? data.settings.rate : 0.85;
+  const isSlow = () => curRate() < 1;
+  const playRate = () => 1;
+  const rateName = () => (RATES.find(r => r[0] === curRate()) || RATES[0])[1];
+  const speedChip = () => `<button class="speed-chip${NATURAL_READY ? '' : ' locked'}" aria-label="調整英文語速">語速 <span>${rateName()}</span></button>`;
   document.addEventListener('click', e => {
     const c = e.target.closest('.speed-chip'); if (!c) return;
-    const i = RATE_CYCLE.findIndex(r => Math.abs(r - data.settings.rate) < 0.01);
-    data.settings.rate = RATE_CYCLE[(i + 1) % RATE_CYCLE.length]; save(); sfx.tap();
+    if (!NATURAL_READY) { toast('自然語速版準備中，完成後就能切換'); return; }
+    data.settings.rate = curRate() === 1 ? 0.85 : 1; save(); sfx.tap();
     $$('.speed-chip span').forEach(s => { s.textContent = rateName(); });
+    reloadPacks();
     toast(`英文語速：${rateName()}`);
   });
-  // 每個單元的英文發音打包成一個檔案（audio/packs/unit-XX.js），需要時才載入
-  const packs = {};
-  function loadPack(uid) {
-    const id = String(uid).padStart(2, '0');
-    if (!packs[id]) packs[id] = new Promise(res => {
-      const sc = document.createElement('script'); sc.src = `audio/packs/unit-${id}.js`;
+  // 每個單元的英文發音打包成一個檔案，需要時才載入：
+  // audio/packs/unit-XX.js＝自然語速，audio/packs-slow/unit-XX.js＝教學慢速
+  const packs = {}, packUnits = new Set();
+  function loadScript(src) {
+    if (!packs[src]) packs[src] = new Promise(res => {
+      const sc = document.createElement('script'); sc.src = src;
       sc.onload = () => res(true); sc.onerror = () => res(false);
       document.head.appendChild(sc);
     });
-    return packs[id];
+    return packs[src];
   }
+  function loadPack(uid) {
+    packUnits.add(uid);
+    const id = String(uid).padStart(2, '0'), u = COURSE.find(c => c.id === +uid);
+    const probe = u && u.words[0] ? slug(u.words[0][0]) : null;
+    const has = H => !probe || !!(H && H[probe]);
+    const first = isSlow() ? `audio/packs-slow/unit-${id}.js` : `audio/packs/unit-${id}.js`;
+    const other = isSlow() ? `audio/packs/unit-${id}.js` : `audio/packs-slow/unit-${id}.js`;
+    return loadScript(first).then(() => has(isSlow() ? window.HH_AUDIO_SLOW : window.HH_AUDIO) ? true : loadScript(other));
+  }
+  const reloadPacks = () => { [...packUnits].forEach(loadPack); };
   const loadPacks = ids => Promise.all(ids.map(loadPack));
   // 瀏覽器規定：要先點一下畫面才能出聲。第一次點擊時補唸剛才那句。
   document.addEventListener('pointerdown', e => {
@@ -590,7 +609,7 @@
 
   // ========== 題目素材 ==========
   const W = (w, u) => ({ en: w[0], zh: w[1], emo: w[2] || '', unit: u.id });
-  const voiceOf = (who, u) => who === 'A' ? 'kid' : u.npc.g;   // 浣浣＝小女孩，其他角色依性別
+  const voiceOf = (who, u) => who === 'A' ? 'Autonoe' : who === 'C' ? u.npc2.v : u.npc.v;   // 每個角色固定一個聲音（浣浣＝Autonoe）
   const L = (l, u) => ({ en: l[1], zh: l[2], who: l[0], unit: u.id, v: voiceOf(l[0], u) });
   const quizLines = u => u.lines.filter(l => { const n = l[1].split(' ').length; return n >= 3 && n <= 8; });
   const ALL_WORDS = COURSE.flatMap(u => u.words.map(w => W(w, u)));
@@ -679,7 +698,9 @@
     if (!m) return null;
     const hit = words.find(w => w.en.toLowerCase() === m[0].toLowerCase());
     const blank = esc(line.en).replace(new RegExp(`(?<![A-Za-z-])${reEsc(esc(m[0]))}(?![A-Za-z-])`, 'i'), '<span class="blank">＿＿＿</span>');
-    const opts = shuffle([hit, ...distractors(hit, ALL_WORDS, 2, words)]);
+    // 干擾選項不要用句子裡已經看得到的字（避免一眼就能排除，也避免混淆）
+    const inLine = w => keywordRegex([w]).test(line.en);
+    const opts = shuffle([hit, ...distractors(hit, ALL_WORDS.filter(w => !inLine(w)), 2, words.filter(w => !inLine(w)))]);
     return { type: 'choice', title: '想想對話，空格該填什麼？', clozeHtml: blank, clozeZh: line.zh, who: line.who, unit: u, audio: line.en, voice: line.v, options: opts.map(o => ({ t: o.en })), answer: hit.en, optLang: 'en', speakAfter: line.en, afterVoice: line.v, wide: true };
   }
   function qSentenceMeaning(s, u) { // 聽句子選意思
@@ -729,8 +750,8 @@
   }
   const face = (who, u) => who === 'A'
     ? `<span class="face mascot-face"><img src="mascot.png" alt="浣浣"></span>`
-    : `<span class="face">${u.npc.face}</span>`;
-  const nameOf = (who, u) => who === 'A' ? '浣浣' : u.npc.name;
+    : `<span class="face">${(who === 'C' ? u.npc2 : u.npc).face}</span>`;
+  const nameOf = (who, u) => who === 'A' ? '浣浣' : who === 'C' ? u.npc2.name : u.npc.name;
 
   // 英文句子：每個字包成 .wd（逐字播放時會亮起來），重點單字是可以點的 .kw
   function highlight(en, u) {
@@ -801,7 +822,7 @@
   // ① 情境對話：一句一句出現，英文在上、中文在下，重點單字可點
   function screenStory(u, mode) {
     remember({ s: 'story', u: u.id, mode });
-    page({ top: lessonTop(1), cls: 'wide', body: `<div class="scene"><span class="scene-emo">${u.scene}</span><div><b>第 ${u.id} 單元 · ${esc(u.title)}</b><small>${esc(u.place)} · 浣浣和${esc(u.npc.name)}</small></div></div>
+    page({ top: lessonTop(1), cls: 'wide', body: `<div class="scene"><span class="scene-emo">${u.scene}</span><div><b>第 ${u.id} 單元 · ${esc(u.title)}</b><small>${esc(u.place)} · 浣浣、${esc(u.npc.name)}和${esc(u.npc2.name)}</small></div></div>
       <div class="coach story-coach"><img src="mascot.png" alt="浣浣" class="coach-img"><div class="coach-bubble">先聽聽這段對話！<small>藍色底線的字是今天的重點，點一下就能聽</small></div></div>
       <div class="chat" id="chat"></div>`,
       bottom: `<button class="btn" id="next">▶ 開始聽對話</button>
@@ -811,7 +832,7 @@
     let shown = 0;
     const addLine = () => {
       const l = u.lines[shown], el = document.createElement('div');
-      el.className = `msg ${l[0] === 'A' ? 'me' : 'them'}`;
+      el.className = `msg ${l[0] === 'A' ? 'me' : 'them'}${l[0] === 'C' ? ' c2' : ''}`;
       el.innerHTML = `${face(l[0], u)}<div class="msg-body"><small>${esc(nameOf(l[0], u))}</small>
         <div class="msg-bubble"><p class="en">${highlight(l[1], u)}</p><p class="zh">${highlightZh(l, u)}</p>
         ${lineTools()}</div></div>`;
@@ -1279,7 +1300,7 @@
   function screenSettings() {
     remember({ s: 'settings' });
     const s = data.settings;
-    const rates = RATES;
+    const rates = RATES, cur = curRate();
     page({ top: navTop('設定'), body: `<div class="list">
         <div class="item"><div class="label">暱稱<small>浣浣會這樣叫你</small></div><span class="value">${name()}</span><button class="linkish" id="rename">修改</button></div>
         <div class="item"><div class="label">重新測驗程度<small>目前每日課程在第 ${Math.min(data.dailyNext, COURSE.length)} 單元</small></div><button class="linkish" id="retest">測驗</button></div>
@@ -1289,7 +1310,7 @@
       </div>
       <div class="list">
         <div class="item"><div class="label">聲音<small>英文發音與浣浣說話</small></div><label class="switch"><input type="checkbox" id="voice" ${s.voice ? 'checked' : ''} aria-label="聲音"><span></span></label></div>
-        <div class="item stack"><div class="label">英文語速<small>上課時也可以按右上角的「語速」切換</small></div><div class="seg" id="rate">${rates.map(([r, l]) => `<button data-r="${r}" class="${s.rate === r ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+        <div class="item stack"><div class="label">英文語速<small>${NATURAL_READY ? '「很慢」是放慢錄製的教學版，「正常」是自然語速版；上課時也可以按右上角的「語速」切換' : '自然語速版準備中，完成後就能切換到「正常」'}</small></div><div class="seg" id="rate">${rates.map(([r, l]) => `<button data-r="${r}" class="${cur === r ? 'on' : ''}" ${NATURAL_READY ? '' : 'disabled'}>${l}</button>`).join('')}</div></div>
         <div class="item"><div class="label">試聽英文發音</div><button class="linkish" id="test">播放範例</button></div>
         <div class="item"><div class="label">音效<small>答對、按鈕的提示音</small></div><label class="switch"><input type="checkbox" id="sfx" ${s.sfx ? 'checked' : ''} aria-label="音效"><span></span></label></div>
         <div class="item"><div class="label">背景音樂<small>使用 App 時的輕柔音樂</small></div><label class="switch"><input type="checkbox" id="music" ${s.music ? 'checked' : ''} aria-label="背景音樂"><span></span></label></div>
@@ -1308,8 +1329,8 @@
     $('#music').onchange = e => { s.music = e.target.checked; save(); if (s.music) music.start(); else music.stop(); };
     $('#vib').onchange = e => { s.vibrate = e.target.checked; save(); buzz([30, 40, 30]); };
     $('#rate').onclick = e => {
-      const b = e.target.closest('button'); if (!b) return;
-      s.rate = Number(b.dataset.r); save();
+      const b = e.target.closest('button'); if (!b || !NATURAL_READY) return;
+      s.rate = Number(b.dataset.r); save(); reloadPacks();
       [...$('#rate').children].forEach(x => x.classList.toggle('on', x === b));
     };
     $('#theme').onclick = e => {
@@ -1317,7 +1338,7 @@
       s.theme = b.dataset.t; save(); applyTheme(); sfx.tap();
       [...$('#theme').children].forEach(x => x.classList.toggle('on', x === b));
     };
-    $('#test').onclick = () => loadPack(1).then(() => say('Hello! Good morning!'));
+    $('#test').onclick = () => loadPack(1).then(() => say('Hello! Good morning!', { voice: 'Erinome' }));
     $('#reset').onclick = () => modal({
       title: '確定要清除嗎？', text: '暱稱與學習進度都會刪除，而且無法復原。', ok: '清除', cancel: '取消', danger: true,
       onOk: () => { try { localStorage.removeItem(KEY); } catch (e) { } data = load(); applyTheme(); screenWelcome(); }
